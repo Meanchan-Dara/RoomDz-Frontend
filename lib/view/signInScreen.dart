@@ -1,8 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
+import 'package:roomdz_frontend/view/registerScreen.dart';
 
 class Signinscreen extends StatefulWidget {
-  Signinscreen({super.key});
+  const Signinscreen({super.key});
 
   @override
   State<Signinscreen> createState() => _SigninscreenState();
@@ -16,18 +19,26 @@ class _SigninscreenState extends State<Signinscreen> {
   bool _isObscure = false;
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    emailCtrl.dispose();
+    passCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                "assets/images/image.png",
+                'assets/images/logo.png',
                 width: double.maxFinite,
-                height: 200,
+                height: 250,
               ),
               Text(
                 "សូមស្វាគមន៍មកកាន់ Dz-Room",
@@ -95,6 +106,115 @@ class _SigninscreenState extends State<Signinscreen> {
                     : Icons.visibility_outlined,
                 text: 'បញ្ចូលពាក្យសម្ងាត់របស់អ្នក',
                 ctrl: passCtrl,
+              ),
+
+              // login
+              SizedBox(height: 16),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: .8,
+                ),
+                onPressed: () {},
+                child: Text(
+                  "ចូលប្រេីប្រាស់",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+
+              //more options
+              Row(
+                children: const [
+                  Expanded(
+                    child: Divider(thickness: 1.2, color: Color(0xFFE2E8F0)),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'Or',
+                      style: TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(thickness: 1.2, color: Color(0xFFE2E8F0)),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              // Continue with Google
+              Container(
+                padding: EdgeInsets.all(8),
+                width: double.infinity,
+                height: 60,
+                child: FilledButton(
+                  style: OutlinedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {},
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.network(
+                        height: 25,
+                        'https://cdn-icons-png.magnific.com/512/720/720255.png',
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.broken_image,
+                              size: 24,
+                              color: Colors.red,
+                            ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'បន្តជាមួយ Google',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // create account
+              SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'មិនទាន់មានគណនី? ',
+                    style: TextStyle(color: Color(0xFF64748B)),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Get.to(() => Registerscreen());
+                    },
+                    child: const Text(
+                      'បង្កើតគណនី',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
