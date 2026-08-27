@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
+import 'package:roomdz_frontend/model/usreModel.dart';
+import 'package:roomdz_frontend/service/auth_service.dart';
+import 'package:roomdz_frontend/widget/parentScreen.dart';
 import 'package:roomdz_frontend/view/signInScreen.dart';
 
 class Registerscreen extends StatefulWidget {
@@ -19,6 +22,45 @@ class _RegisterscreenState extends State<Registerscreen> {
 
   bool _isObscure = false;
   bool _isAgreed = false;
+
+  // backend section
+  bool isloading = false;
+  final AuthService authService = AuthService();
+  Future<void> resgister() async {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      Get.snackbar("Incorrect", "Passwords do not match");
+      return;
+    }
+    //else
+    setState(() {
+      isloading = true;
+    });
+
+    try {
+      UserModel? user = await authService.resgister(
+        _fullNameController.text,
+        _emailController.text,
+        _passwordController.text,
+        _confirmPasswordController.text,
+      );
+      if (user != null) {
+        if (!mounted) return;
+        Get.to(() => Signinscreen());
+      } else {
+        if (!mounted) return;
+        Get.snackbar("Invalided", "Register failed");
+      }
+    } catch (e) {
+      throw Exception();
+    } finally {
+      if (mounted) {
+        setState(() {
+          isloading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,7 +243,10 @@ class _RegisterscreenState extends State<Registerscreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      isloading ? null : resgister();
+                      Get.back();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       elevation: 0,
@@ -209,14 +254,16 @@ class _RegisterscreenState extends State<Registerscreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
-                      'បង្កើតគណនី',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: isloading
+                        ? CircularProgressIndicator()
+                        : Text(
+                            'បង្កើតគណនី',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ),
                 SizedBox(height: 16),
