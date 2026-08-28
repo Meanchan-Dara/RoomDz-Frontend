@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
@@ -82,8 +83,9 @@ class _HomescreenState extends State<Homescreen> {
               SizedBox(height: 16),
               //build category
               _buildCategory(),
+              SizedBox(height: 16),
               // body build
-              // _buildBody(),
+              _buildBody(),
             ],
           ),
         ),
@@ -91,21 +93,253 @@ class _HomescreenState extends State<Homescreen> {
     );
   }
 
-  // Widget _buildBody() {
-  //   return SizedBox(
-  //     width: double.infinity,
-  //     height: 600,
-  //     child: ListView.builder(
-  //       shrinkWrap: true,
-  //       physics: NeverScrollableScrollPhysics(),
-  //       itemBuilder: (context, index) {
-  //         return Stack(
-  //           children: [Container(width: 200, height: 200, color: Colors.red)],
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
+  Widget _buildBody() {
+    return SizedBox(
+      height: double.maxFinite,
+      child: ListView.builder(
+        itemCount: 10,
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              // main box
+              Container(
+                width: double.infinity,
+                height: 380,
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
+                      color: Colors.black.withOpacity(0.1),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadiusGeometry.only(
+                          topLeft: Radius.circular(16),
+                          topRight: Radius.circular(16),
+                        ),
+                        child: CachedNetworkImage(
+                          fit: BoxFit.cover,
+                          width: double.maxFinite,
+                          imageUrl:
+                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2iDu4V8bOS41tCNRvIK3ZRhkxqJRZalPD8hrUbghleXyQK5PDEfy__NY&s=10',
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    // Title + price
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Text(
+                            "បន្ទប់សម្រាប់ជួល",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          Spacer(),
+                          Text(
+                            "\$ 100",
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            " /month",
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    // location
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_outlined,
+                            size: 20,
+                            color: AppColors.primary,
+                          ),
+                          Expanded(
+                            child: Text(
+                              "Street 289, Phum 13, Sangkat Boeung Kak 1, "
+                              "Khan Toul Kork, Phnom Penh",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 16,
+                                height: 1.4,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: 8),
+                    //room benefit
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SizedBox(
+                        height: 50,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          shrinkWrap: true,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 7,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE9ECFF),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.local_parking_outlined,
+                                        size: 20,
+                                        color: Colors.black,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        "Parking",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    //detail view
+                    Align(
+                      alignment: Alignment.center,
+                      child: OutlinedButton(
+                        onPressed: () {},
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Color(0xFF0052CC),
+                          side: BorderSide(
+                            color: Color(0xFF0052CC),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              16.0,
+                            ), // Rounded corners
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16.0,
+                            horizontal: 24.0,
+                          ),
+                          minimumSize: Size(350, 1),
+                        ),
+                        child: const Text(
+                          'View Details',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+                  ],
+                ),
+              ),
+
+              //under is stack box
+              // rating of room
+              Positioned(
+                top: 16,
+                left: 16,
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    width: 60,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.star, color: Colors.amber, size: 16),
+                        SizedBox(width: 4),
+                        Text(
+                          '4.8',
+                          style: TextStyle(
+                            color: AppColors.surface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // icon fave
+              Positioned(
+                top: 16,
+                right: 16,
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.tertiary,
+                    ),
+                    child: Center(child: Icon(Icons.favorite_outline)),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
   Widget _buildCategory() {
     return SizedBox(
