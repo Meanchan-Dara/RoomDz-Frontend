@@ -23,7 +23,7 @@ class _HomescreenState extends State<Homescreen> {
           padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.amber,
+              color: AppColors.secondary,
               shape: BoxShape.circle,
             ),
           ),
@@ -83,7 +83,7 @@ class _HomescreenState extends State<Homescreen> {
               SizedBox(height: 16),
               //build category
               _buildCategory(),
-              SizedBox(height: 16),
+              SizedBox(height: 8),
               // body build
               _buildBody(),
             ],
@@ -254,10 +254,11 @@ class _HomescreenState extends State<Homescreen> {
                       child: OutlinedButton(
                         onPressed: () {},
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Color(0xFF0052CC),
+                          foregroundColor: AppColors.primary,
                           side: BorderSide(
-                            color: Color(0xFF0052CC),
+                            color: AppColors.primary,
                             width: 1.5,
+                            style: BorderStyle.solid,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
@@ -265,10 +266,10 @@ class _HomescreenState extends State<Homescreen> {
                             ), // Rounded corners
                           ),
                           padding: const EdgeInsets.symmetric(
-                            vertical: 16.0,
+                            vertical: 8.0,
                             horizontal: 24.0,
                           ),
-                          minimumSize: Size(350, 1),
+                          minimumSize: Size(280, 0),
                         ),
                         child: const Text(
                           'View Details',
@@ -343,7 +344,7 @@ class _HomescreenState extends State<Homescreen> {
 
   Widget _buildCategory() {
     return SizedBox(
-      height: 85,
+      height: 65,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: ListView.builder(
@@ -352,7 +353,7 @@ class _HomescreenState extends State<Homescreen> {
           itemBuilder: (context, index) {
             final category = categories[index];
             return Container(
-              width: 80,
+              width: 70,
               margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
