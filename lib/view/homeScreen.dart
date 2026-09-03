@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
+import 'package:roomdz_frontend/view/detailScreen.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
 
 class Homescreen extends StatefulWidget {
@@ -23,14 +25,18 @@ class _HomescreenState extends State<Homescreen> {
           padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.secondary,
+              image: DecorationImage(
+                image: NetworkImage(
+                  "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+                ),
+              ),
               shape: BoxShape.circle,
             ),
           ),
         ),
         centerTitle: true,
         title: Text(
-          'Dz-RoomFinder',
+          'Dz-Room',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24,
@@ -252,7 +258,14 @@ class _HomescreenState extends State<Homescreen> {
                     Align(
                       alignment: Alignment.center,
                       child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Get.to(
+                            () => Detailscreen(
+                              imageUrl:
+                                  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2iDu4V8bOS41tCNRvIK3ZRhkxqJRZalPD8hrUbghleXyQK5PDEfy__NY&s=10',
+                            ),
+                          );
+                        },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.primary,
                           side: BorderSide(
@@ -269,7 +282,7 @@ class _HomescreenState extends State<Homescreen> {
                             vertical: 8.0,
                             horizontal: 24.0,
                           ),
-                          minimumSize: Size(280, 0),
+                          minimumSize: Size(280, 20),
                         ),
                         child: const Text(
                           'View Details',
