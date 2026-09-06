@@ -1,6 +1,6 @@
 {
-    "name": "roomdz_ui",
-    "short_name": "roomdz_ui",
+    "name": "roomdz_frontend",
+    "short_name": "roomdz_frontend",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
