@@ -16,6 +16,7 @@ class _HomescreenState extends State<Homescreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         actionsPadding: EdgeInsets.symmetric(horizontal: 16),
         actions: [Icon(Icons.notifications_outlined, size: 32)],
@@ -116,7 +117,7 @@ class _HomescreenState extends State<Homescreen> {
                       blurRadius: 10,
                       spreadRadius: 1,
                       offset: const Offset(0, 4),
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                     ),
                   ],
                 ),
