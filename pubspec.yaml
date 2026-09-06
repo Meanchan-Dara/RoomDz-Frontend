@@ -45,6 +45,7 @@ dependencies:
   persistent_bottom_nav_bar_v2: ^6.4.0
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
+  google_maps_flutter: ^2.14.2
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +72,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/logo.png
+    - assets/images/pin.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

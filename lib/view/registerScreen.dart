@@ -76,11 +76,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   // crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      width: 70,
-                      fit: BoxFit.fitWidth,
-                    ),
+                    Image.asset('assets/images/logo.png'),
                     Text(
                       'Dz-RoomFinder',
                       style: TextStyle(

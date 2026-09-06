@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/view/detailScreen.dart';
+import 'package:roomdz_frontend/view/profile_Screen.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
 
 class Homescreen extends StatefulWidget {
@@ -21,16 +22,19 @@ class _HomescreenState extends State<Homescreen> {
       appBar: AppBar(
         actionsPadding: EdgeInsets.symmetric(horizontal: 16),
         actions: [Icon(Icons.notifications_outlined, size: 32)],
-        leading: Padding(
-          padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
-          child: Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(
-                  "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+        leading: GestureDetector(
+          onTap: () => Get.to(() => ProfileScreen()),
+          child: Padding(
+            padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
+            child: Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(
+                    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+                  ),
                 ),
+                shape: BoxShape.circle,
               ),
-              shape: BoxShape.circle,
             ),
           ),
         ),

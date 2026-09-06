@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/view/homeScreen.dart';
+import 'package:roomdz_frontend/view/mapScreen.dart';
+import 'package:roomdz_frontend/view/profile_Screen.dart';
 
 class Parentscreen extends StatelessWidget {
   const Parentscreen({super.key});
@@ -34,17 +36,19 @@ class Parentscreen extends StatelessWidget {
           ),
         ),
         PersistentTabConfig(
-          screen: Homescreen(), // Replace with MapScreen() later
+          screen: Mapscreen(),
           item: ItemConfig(
             textStyle: GoogleFonts.battambang(
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
-            icon: Icon(Icons.location_on, size: 25),
+
+            icon: Icon(Icons.location_on, size: 25, color: Colors.white),
             title: 'ទីតាំង',
             inactiveIcon: Icon(Icons.location_on_outlined, size: 25),
             activeForegroundColor: AppColors.primary,
-            inactiveForegroundColor: Color(0xFF94A3B8),
+            inactiveForegroundColor: Colors.white,
+            // inactiveBackgroundColor: Colors.grey,
           ),
         ),
         PersistentTabConfig(
@@ -59,7 +63,7 @@ class Parentscreen extends StatelessWidget {
           ),
         ),
         PersistentTabConfig(
-          screen: Homescreen(),
+          screen: ProfileScreen(),
           item: ItemConfig(
             textStyle: GoogleFonts.battambang(),
             icon: Icon(Icons.person),
