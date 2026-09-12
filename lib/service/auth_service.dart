@@ -1,78 +1,73 @@
-import 'dart:convert';
-
-import 'package:roomdz_frontend/model/usreModel.dart';
-import 'package:roomdz_frontend/service/api_service.dart';
+import 'package:dio/dio.dart';
+import 'api_service.dart';
 
 class AuthService {
   final ApiService apiService = ApiService();
 
-  // login
-  Future<UserModel?> login(String email, String password) async {
-    final response = await apiService.post(
-      '/login',
-      body: {'email': email, 'password': password},
-    );
+  // ================= REGISTER =================
 
-    final data = jsonDecode(response.body);
+  Future<Map<String, dynamic>> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await apiService.dio.post(
+        '/register',
+        data: {'name': name, 'email': email, 'password': password},
+      );
 
-    if (response.statusCode == 200) {
-      // Save Sanctum token
-      await apiService.storage.write(key: 'token', value: data['token']);
+      final token = response.data['token'];
 
-      // Return user
-      return UserModel.fromJson(data['user']);
+      await apiService.saveToken(token);
+
+      return response.data;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Register failed';
     }
-
-    return null;
   }
 
-  // resgister
-  Future<UserModel?> resgister(
-    String name,
-    String email,
-    String password,
-    String comfirmPassword,
-  ) async {
-    final response = await apiService.post(
-      '/register',
-      body: {
-        'name': name,
-        'email': email,
-        'password': password,
-        'comfirmPassword': comfirmPassword,
-      },
-    );
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 201) {
-      //save toke return from backend
-      await apiService.storage.write(key: 'token', value: data['token']);
-      return UserModel.fromJson(data['user']);
+  // ================= LOGIN =================
+
+  Future<Map<String, dynamic>> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await apiService.dio.post(
+        '/login',
+        data: {'email': email, 'password': password},
+      );
+
+      final token = response.data['token'];
+
+      await apiService.saveToken(token);
+
+      return response.data;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Login failed';
     }
-    return null;
   }
 
-  //get profile
-  Future<UserModel?> getProfile() async {
-    final response = await apiService.get('/profile', requiresAuth: true);
+  // ================= LOGOUT =================
 
-    final data = jsonDecode(response.body);
-
-    if (response.statusCode == 200) {
-      return UserModel.fromJson(data['user'] ?? data);
+  Future<void> logout() async {
+    try {
+      await apiService.dio.post('/logout');
+    } finally {
+      await apiService.removeToken();
     }
-
-    return null;
   }
 
-  //logout
-  Future<bool> logout() async {
-    final response = await apiService.post('/logout', requiresAuth: true);
+  // ================= PROFILE =================
 
-    if (response.statusCode == 200) {
-      await apiService.clearToken();
-      return true;
+  Future<Map<String, dynamic>> getProfile() async {
+    try {
+      final response = await apiService.dio.get('/profile');
+
+      return response.data;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to get profile';
     }
-
-    return false;
   }
 }

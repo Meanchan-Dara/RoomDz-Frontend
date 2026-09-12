@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
@@ -26,40 +28,40 @@ class _RegisterscreenState extends State<Registerscreen> {
   // backend section
   bool isloading = false;
   final AuthService authService = AuthService();
-  Future<void> resgister() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      Get.snackbar("Incorrect", "Passwords do not match");
-      return;
-    }
-    //else
-    setState(() {
-      isloading = true;
-    });
-
-    try {
-      UserModel? user = await authService.resgister(
-        _fullNameController.text,
-        _emailController.text,
-        _passwordController.text,
-        _confirmPasswordController.text,
-      );
-      if (user != null) {
-        if (!mounted) return;
-        Get.to(() => Signinscreen());
-      } else {
-        if (!mounted) return;
-        Get.snackbar("Invalided", "Register failed");
-      }
-    } catch (e) {
-      throw Exception();
-    } finally {
-      if (mounted) {
-        setState(() {
-          isloading = false;
-        });
-      }
-    }
-  }
+  // Future<void> resgister() async {
+  //   if (_passwordController.text != _confirmPasswordController.text) {
+  //     Get.snackbar("Incorrect", "Passwords do not match");
+  //     return;
+  //   }
+  //   //else
+  //   setState(() {
+  //     isloading = true;
+  //   });
+  //
+  //   try {
+  //     UserModel? user = await authService.resgister(
+  //       _fullNameController.text,
+  //       _emailController.text,
+  //       _passwordController.text,
+  //       _confirmPasswordController.text,
+  //     );
+  //     if (user != null) {
+  //       if (!mounted) return;
+  //       Get.to(() => Signinscreen());
+  //     } else {
+  //       if (!mounted) return;
+  //       Get.snackbar("Invalided", "Register failed");
+  //     }
+  //   } catch (e) {
+  //     throw Exception();
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() {
+  //         isloading = false;
+  //       });
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +78,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   // crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Image.asset('assets/images/logo.png'),
+                    // Image.asset('assets/images/logo.png'),
                     Text(
                       'Dz-RoomFinder',
                       style: TextStyle(
@@ -239,9 +241,61 @@ class _RegisterscreenState extends State<Registerscreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      isloading ? null : resgister();
-                      Get.back();
+                    onPressed: isloading
+                        ? null
+                        : () async {
+                      if (_passwordController.text !=
+                          _confirmPasswordController.text) {
+                        Get.snackbar(
+                          'Error',
+                          'Passwords do not match',
+                        );
+                        return;
+                      }
+
+                      if (!_isAgreed) {
+                        Get.snackbar(
+                          'Error',
+                          'Please agree to the terms',
+                        );
+                        return;
+                      }
+
+                      setState(() {
+                        isloading = true;
+                      });
+
+                      try {
+                        final result = await authService.register(
+                          name: _fullNameController.text.trim(),
+                          email: _emailController.text.trim(),
+                          password: _passwordController.text,
+                        );
+
+                        log(result.toString());
+
+                        Get.snackbar(
+                          'Success',
+                          'Register successful',
+                        );
+
+                        Get.off(() => Signinscreen());
+
+                      } catch (e) {
+                        log('REGISTER ERROR: $e');
+
+                        Get.snackbar(
+                          'Register Failed',
+                          e.toString(),
+                        );
+
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            isloading = false;
+                          });
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,

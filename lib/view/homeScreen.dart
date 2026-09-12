@@ -2,9 +2,15 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
+import 'package:roomdz_frontend/controller/category_fillter.dart';
+import 'package:roomdz_frontend/controller/location_controller.dart';
+import 'package:roomdz_frontend/model/roomModel.dart';
+import 'package:roomdz_frontend/service/rooms/room_service.dart';
 import 'package:roomdz_frontend/view/detailScreen.dart';
 import 'package:roomdz_frontend/view/profile_Screen.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
+import 'package:roomdz_frontend/widget/skeleton/home_screen_skeleton.dart';
+import 'package:roomdz_frontend/controller/favorite_controller.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -14,26 +20,54 @@ class Homescreen extends StatefulWidget {
 }
 
 class _HomescreenState extends State<Homescreen> {
-  final TextEditingController _locationRoom = TextEditingController();
+  final RoomServer roomService = RoomServer();
+
   int selectedCategories = 0;
+
+  late CategoryFilter categoryFilter;
+  late LocationController locationController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    categoryFilter = Get.put(CategoryFilter(roomServer: roomService));
+
+    locationController = Get.put(
+      LocationController(categoryFilter: categoryFilter),
+    );
+  }
+
+  // refresh room list
+  Future<void> _refreshRooms() async {
+    locationController.resetLocation();
+
+    selectedCategories = 0;
+
+    await categoryFilter.getRooms();
+
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        actionsPadding: EdgeInsets.symmetric(horizontal: 16),
-        actions: [Icon(Icons.notifications_outlined, size: 32)],
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_outlined, size: 28),
+          ),
+        ],
         leading: GestureDetector(
           onTap: () => Get.to(() => ProfileScreen()),
           child: Padding(
-            padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(
-                    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-                  ),
-                ),
-                shape: BoxShape.circle,
+            padding: const EdgeInsets.all(8.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.grey.shade200,
+              backgroundImage: const NetworkImage(
+                'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
               ),
             ),
           ),
@@ -48,346 +82,565 @@ class _HomescreenState extends State<Homescreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // find buttom
-              TextFormField(
-                controller: _locationRoom,
-                decoration: InputDecoration(
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.primary),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  hintText: 'ស្វែងរកទីតាំងបន្ទប់....',
-                  prefixIcon: Icon(Icons.search),
-                  suffixIcon: GestureDetector(
-                    onTap: () {
-                      _locationRoom.clear();
-                    },
-                    child: Icon(Icons.close),
-                  ),
-                ),
-              ),
-              SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.location_on_outlined, color: AppColors.primary),
-                  SizedBox(width: 8),
-                  Text(
-                    "Current location",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              //build category
-              _buildCategory(),
-              SizedBox(height: 8),
-              // body build
-              _buildBody(),
-            ],
+      body: RefreshIndicator(
+        onRefresh: _refreshRooms,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLocationSearch(),
+
+                const SizedBox(height: 12),
+
+                _buildCurrentLocation(),
+
+                const SizedBox(height: 16),
+
+                _buildCategory(),
+
+                const SizedBox(height: 12),
+
+                _buildBody(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  // location search section
+  Widget _buildLocationSearch() {
+    return Column(
+      children: [
+        TextFormField(
+          controller: locationController.locationTextController,
+          onTap: () {
+            if (locationController.locationTextController.text.isNotEmpty) {
+              locationController.searchLocation(
+                locationController.locationTextController.text,
+              );
+            }
+          },
+          onChanged: locationController.searchLocation,
+          decoration: InputDecoration(
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: AppColors.primary),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+            hintText: 'ស្វែងរកទីតាំងបន្ទប់....',
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: ValueListenableBuilder(
+              valueListenable: locationController.locationTextController,
+              builder: (context, value, child) {
+                if (value.text.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return GestureDetector(
+                  onTap: locationController.clearLocation,
+                  child: const Icon(Icons.close),
+                );
+              },
+            ),
+          ),
+        ),
+
+        Obx(() {
+          final isSearching = locationController.isLocationSearching.value;
+
+          final suggestions = locationController.locationSuggestions.toList();
+
+          if (!isSearching || suggestions.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(top: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: suggestions.length,
+              separatorBuilder: (context, index) {
+                return Divider(height: 1, color: Colors.grey.shade200);
+              },
+              itemBuilder: (context, index) {
+                final location = suggestions[index];
+
+                return ListTile(
+                  leading: Icon(
+                    Icons.location_on_outlined,
+                    color: AppColors.primary,
+                  ),
+                  title: Text(
+                    location,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () {
+                    locationController.selectLocation(location);
+                    FocusScope.of(context).unfocus();
+                  },
+                );
+              },
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  // current location section
+  Widget _buildCurrentLocation() {
+    return Obx(
+      () => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.location_on, color: AppColors.primary),
+            ),
+
+            const SizedBox(width: 10),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Current location',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+
+                  const SizedBox(height: 3),
+
+                  Text(
+                    locationController.currentLocation.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            locationController.isGettingCurrentLocation.value
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : IconButton(
+                    onPressed: () {
+                      locationController.showLocationBottomSheet(context);
+                    },
+                    icon: Icon(Icons.my_location, color: AppColors.primary),
+                    tooltip: 'Choose location',
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // rooms body
   Widget _buildBody() {
-    return SizedBox(
-      height: double.maxFinite,
-      child: ListView.builder(
-        itemCount: 10,
+    return Obx(() {
+      if (categoryFilter.isLoading.value) {
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 3,
+          itemBuilder: (context, index) {
+            return const HomeScreenSkeleton();
+          },
+        );
+      }
+
+      final rooms = categoryFilter.filteredRooms;
+
+      if (rooms.isEmpty) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 60),
+            child: Text(
+              'No rooms available',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
+      }
+
+      return ListView.builder(
+        itemCount: rooms.length,
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         itemBuilder: (context, index) {
-          return Stack(
-            children: [
-              // main box
-              Container(
-                width: double.infinity,
-                height: 380,
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 4),
-                      color: Colors.black.withOpacity(0.1),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadiusGeometry.only(
-                          topLeft: Radius.circular(16),
-                          topRight: Radius.circular(16),
-                        ),
-                        child: CachedNetworkImage(
-                          fit: BoxFit.cover,
-                          width: double.maxFinite,
-                          imageUrl:
-                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2iDu4V8bOS41tCNRvIK3ZRhkxqJRZalPD8hrUbghleXyQK5PDEfy__NY&s=10',
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    // Title + price
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Text(
-                            "បន្ទប់សម្រាប់ជួល",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Spacer(),
-                          Text(
-                            "\$ 100",
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            " /month",
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    // location
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 20,
-                            color: AppColors.primary,
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Street 289, Phum 13, Sangkat Boeung Kak 1, "
-                              "Khan Toul Kork, Phnom Penh",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 16,
-                                height: 1.4,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+          final Datum room = rooms[index];
 
-                    SizedBox(height: 8),
-                    //room benefit
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: SizedBox(
-                        height: 50,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          shrinkWrap: true,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 7,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE9ECFF),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.local_parking_outlined,
-                                        size: 20,
-                                        color: Colors.black,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        "Parking",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    //detail view
-                    Align(
-                      alignment: Alignment.center,
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Get.to(
-                            () => Detailscreen(
-                              imageUrl:
-                                  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2iDu4V8bOS41tCNRvIK3ZRhkxqJRZalPD8hrUbghleXyQK5PDEfy__NY&s=10',
-                            ),
-                          );
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: BorderSide(
-                            color: AppColors.primary,
-                            width: 1.5,
-                            style: BorderStyle.solid,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              16.0,
-                            ), // Rounded corners
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 8.0,
-                            horizontal: 24.0,
-                          ),
-                          minimumSize: Size(280, 20),
-                        ),
-                        child: const Text(
-                          'View Details',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
+          return RoomCard(room: room);
+        },
+      );
+    });
+  }
 
-                    SizedBox(height: 16),
-                  ],
+  // category filter
+  Widget _buildCategory() {
+    return SizedBox(
+      height: 65,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final category = categories[index];
+
+          final bool isSelected = selectedCategories == index;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                selectedCategories = index;
+              });
+
+              categoryFilter.filterByCategory(category.id);
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 75,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : Colors.grey.shade300,
                 ),
               ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    category.icon,
+                    size: 26,
+                    color: isSelected ? Colors.white : Colors.black87,
+                  ),
 
-              //under is stack box
-              // rating of room
-              Positioned(
-                top: 16,
-                left: 16,
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    width: 60,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: .2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        SizedBox(width: 4),
-                        Text(
-                          '4.8',
-                          style: TextStyle(
-                            color: AppColors.surface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 4),
+
+                  Text(
+                    category.text,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: isSelected ? Colors.white : Colors.black87,
                     ),
                   ),
-                ),
+                ],
               ),
-
-              // icon fave
-              Positioned(
-                top: 16,
-                right: 16,
-                child: GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.tertiary,
-                    ),
-                    child: Center(child: Icon(Icons.favorite_outline)),
-                  ),
-                ),
-              ),
-            ],
+            ),
           );
         },
       ),
     );
   }
+}
 
-  Widget _buildCategory() {
-    return SizedBox(
-      height: 65,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            return Container(
-              width: 70,
-              margin: const EdgeInsets.only(right: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
+class RoomCard extends StatelessWidget {
+  final Datum room;
+
+  const RoomCard({super.key, required this.room});
+
+  @override
+  Widget build(BuildContext context) {
+    final FavoriteController favoriteController =
+        Get.find<FavoriteController>();
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 10,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.08),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                child: CachedNetworkImage(
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+
+                  //image
+                  imageUrl: room.image,
+                  placeholder: (context, url) {
+                    return Container(
+                      height: 180,
+                      color: Colors.grey.shade200,
+                      child: const Center(child: CircularProgressIndicator()),
+                    );
+                  },
+                  errorWidget: (context, url, error) {
+                    return Container(
+                      height: 180,
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported_outlined,
+                          size: 50,
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+
+              const SizedBox(height: 12),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        //title
+                        room.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    Text(
+                      //price
+                      '\$${room.price}',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    Text(
+                      ' /month',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
+
+                    const SizedBox(width: 4),
+
+                    Expanded(
+                      child: Text(
+                        room.address,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildChip(icon: Icons.home_outlined, label: room.type),
+
+                      const SizedBox(width: 8),
+
+                      _buildChip(
+                        icon: Icons.category_outlined,
+                        label: room.category.name,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Center(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Get.to(() => Detailscreen(id: room.id));
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: BorderSide(color: AppColors.primary, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      minimumSize: const Size(double.infinity, 42),
+                    ),
+                    child: const Text(
+                      'View Details',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+            ],
+          ),
+
+          Positioned(
+            top: 12,
+            left: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(category.icon, size: 30),
-                  const SizedBox(height: 6),
-                  Text(category.text, textAlign: TextAlign.center),
+                  const Icon(Icons.star, color: Colors.amber, size: 14),
+
+                  const SizedBox(width: 4),
+
+                  Text(
+                    room.rating.toStringAsFixed(1),
+                    style: TextStyle(
+                      color: AppColors.surface,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
-            );
-          },
-        ),
+            ),
+          ),
+          //favorate icon
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Obx(() {
+              final isFavorite = favoriteController.isFavorite(room.id);
+
+              return IconButton(
+                onPressed: () {
+                  favoriteController.toggleFavorite(room.id);
+                },
+                icon: Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorite ? Colors.red : Colors.grey,
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE9ECFF),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: Colors.black87),
+
+          const SizedBox(width: 6),
+
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ],
       ),
     );
   }

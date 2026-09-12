@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:roomdz_frontend/view/detailScreen.dart';
 
 class Mapscreen extends StatefulWidget {
   const Mapscreen({super.key});
@@ -8,6 +10,7 @@ class Mapscreen extends StatefulWidget {
   State<Mapscreen> createState() => _MapscreenState();
 }
 
+// Room? selectedRoom;
 class _MapscreenState extends State<Mapscreen> {
   BitmapDescriptor? customMarker;
 
@@ -19,7 +22,7 @@ class _MapscreenState extends State<Mapscreen> {
 
   Future<void> loadCustomMarker() async {
     customMarker = await BitmapDescriptor.asset(
-      const ImageConfiguration(size: Size(80, 80)),
+      const ImageConfiguration(size: Size(65, 65)),
       "assets/images/pin.png",
     );
 
@@ -59,13 +62,55 @@ class _MapscreenState extends State<Mapscreen> {
     };
 
     return Scaffold(
-      body: GoogleMap(
-        initialCameraPosition: const CameraPosition(
-          target: LatLng(11.5683, 104.9211),
-
-          zoom: 18,
+      body: GestureDetector(
+        onDoubleTap: () {
+          Get.bottomSheet(
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'fafggg',
+                    // room.name,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '12',
+                    // room.price,
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      child: const Text("View Room"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        child: GoogleMap(
+          initialCameraPosition: const CameraPosition(
+            target: LatLng(11.5683, 104.9211),
+            zoom: 15,
+          ),
+          markers: markers,
         ),
-        markers: markers,
       ),
     );
   }

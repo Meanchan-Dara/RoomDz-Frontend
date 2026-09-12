@@ -8,13 +8,13 @@ class UrlUtil {
     }
   }
 
-  Future<void> navigateToRoom(RoomModel room) async {
-    final url = Uri.parse(
-      "https://www.google.com/maps/dir/"
-      "?api=1"
-      "&destination=${room.latitude},${room.longitude}",
-    );
-
-    await launchUrl(url, mode: LaunchMode.externalApplication);
-  }
+  // Future<void> navigateToRoom(RoomModel room) async {
+  //   final url = Uri.parse(
+  //     "https://www.google.com/maps/dir/"
+  //     "?api=1"
+  //     "&destination=${room.latitude},${room.longitude}",
+  //   );
+  //
+  //   await launchUrl(url, mode: LaunchMode.externalApplication);
+  // }
 }

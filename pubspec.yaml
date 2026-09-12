@@ -46,6 +46,10 @@ dependencies:
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
   google_maps_flutter: ^2.14.2
+  dio: ^5.11.1
+  skeletonizer: ^3.0.0
+  geolocator: ^14.0.2
+  geocoding: ^3.0.0
 
 dev_dependencies:
   flutter_test:

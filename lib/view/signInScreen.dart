@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/usreModel.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
+import 'package:roomdz_frontend/view/homeScreen.dart';
 import 'package:roomdz_frontend/widget/parentScreen.dart';
 import 'package:roomdz_frontend/view/registerScreen.dart';
 
@@ -25,47 +26,47 @@ class _SigninscreenState extends State<Signinscreen> {
 
   bool isLoading = false;
 
-  Future<void> login() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      UserModel? user = await authService.login(
-        emailCtrl.text.trim(),
-        passCtrl.text,
-      );
-
-      if (user != null) {
-        print('Login successful');
-        print('User: ${user.name}');
-
-        if (!mounted) return;
-
-        Get.to(() => Parentscreen());
-      } else {
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid email or password')),
-        );
-      }
-    } catch (e) {
-      print('Login error: $e');
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
+  // Future<void> login() async {
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+  //
+  //   try {
+  //     UserModel? user = await authService.login(
+  //       emailCtrl.text.trim(),
+  //       passCtrl.text,
+  //     );
+  //
+  //     if (user != null) {
+  //       print('Login successful');
+  //       print('User: ${user.name}');
+  //
+  //       if (!mounted) return;
+  //
+  //       Get.to(() => Parentscreen());
+  //     } else {
+  //       if (!mounted) return;
+  //
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Invalid email or password')),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print('Login error: $e');
+  //
+  //     if (!mounted) return;
+  //
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() {
+  //         isLoading = false;
+  //       });
+  //     }
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -167,8 +168,13 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
                   elevation: .8,
                 ),
-                onPressed: () {
-                  isLoading ? null : login();
+                onPressed: () async {
+                  await authService.login(
+                    email: emailCtrl.text,
+                    password: passCtrl.text,
+                  );
+                  Get.to(() => Parentscreen());
+                  // isLoading ? null : login();
                 },
                 child: isLoading
                     ? CircularProgressIndicator()
