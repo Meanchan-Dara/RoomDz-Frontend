@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/usreModel.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
-import 'package:roomdz_frontend/widget/parentScreen.dart';
 import 'package:roomdz_frontend/view/signInScreen.dart';
 
 class Registerscreen extends StatefulWidget {
@@ -66,6 +65,7 @@ class _RegisterscreenState extends State<Registerscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
