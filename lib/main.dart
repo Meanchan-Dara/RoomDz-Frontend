@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Parentscreen(),
+      home: Signinscreen(),
       theme: ThemeData(textTheme: GoogleFonts.battambangTextTheme()),
     );
   }

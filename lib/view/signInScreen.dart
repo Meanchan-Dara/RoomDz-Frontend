@@ -1,7 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
-import 'package:roomdz_frontend/model/usreModel.dart';
+import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/view/homeScreen.dart';
 import 'package:roomdz_frontend/widget/parentScreen.dart';
@@ -24,48 +25,6 @@ class _SigninscreenState extends State<Signinscreen> {
   final AuthService authService = AuthService();
 
   bool isLoading = false;
-
-  // Future<void> login() async {
-  //   setState(() {
-  //     isLoading = true;
-  //   });
-  //
-  //   try {
-  //     UserModel? user = await authService.login(
-  //       emailCtrl.text.trim(),
-  //       passCtrl.text,
-  //     );
-  //
-  //     if (user != null) {
-  //       print('Login successful');
-  //       print('User: ${user.name}');
-  //
-  //       if (!mounted) return;
-  //
-  //       Get.to(() => Parentscreen());
-  //     } else {
-  //       if (!mounted) return;
-  //
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Invalid email or password')),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     print('Login error: $e');
-  //
-  //     if (!mounted) return;
-  //
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() {
-  //         isLoading = false;
-  //       });
-  //     }
-  //   }
-  // }
 
   @override
   void dispose() {
@@ -91,7 +50,7 @@ class _SigninscreenState extends State<Signinscreen> {
                 height: 250,
               ),
               Text(
-                "សូមស្វាគមន៍មកកាន់ Dz-Room",
+                "សូមស្វាគមន៍មកកាន់ Room-Dz",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
@@ -168,14 +127,27 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
                   elevation: .8,
                 ),
-                onPressed: () async {
-                  await authService.login(
-                    email: emailCtrl.text,
-                    password: passCtrl.text,
-                  );
-                  Get.to(() => Parentscreen());
-                  // isLoading ? null : login();
-                },
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        setState(() => isLoading = true);
+                        try {
+                          final user = await authService.login(
+                            email: emailCtrl.text.trim(),
+                            password: passCtrl.text,
+                          );
+                          if (!mounted) return;
+                          Get.off(
+                            () => Parentscreen(),
+                          ); // Get.off, not Get.to — don't stack login on the back stack
+                        } on DioException catch (e) {
+                          final msg =
+                              e.response?.data?['message'] ?? 'Login failed';
+                          Get.snackbar('Error', msg);
+                        } finally {
+                          if (mounted) setState(() => isLoading = false);
+                        }
+                      },
                 child: isLoading
                     ? CircularProgressIndicator()
                     : Text(
@@ -291,6 +263,7 @@ class _SigninscreenState extends State<Signinscreen> {
     required TextEditingController ctrl,
   }) {
     return TextFormField(
+      controller: ctrl,
       obscureText: obscureText,
       decoration: InputDecoration(
         hintText: text,

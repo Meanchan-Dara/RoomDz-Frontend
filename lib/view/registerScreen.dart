@@ -1,9 +1,10 @@
 import 'dart:developer';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
-import 'package:roomdz_frontend/model/usreModel.dart';
+import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/view/signInScreen.dart';
 
@@ -27,41 +28,6 @@ class _RegisterscreenState extends State<Registerscreen> {
   // backend section
   bool isloading = false;
   final AuthService authService = AuthService();
-  // Future<void> resgister() async {
-  //   if (_passwordController.text != _confirmPasswordController.text) {
-  //     Get.snackbar("Incorrect", "Passwords do not match");
-  //     return;
-  //   }
-  //   //else
-  //   setState(() {
-  //     isloading = true;
-  //   });
-  //
-  //   try {
-  //     UserModel? user = await authService.resgister(
-  //       _fullNameController.text,
-  //       _emailController.text,
-  //       _passwordController.text,
-  //       _confirmPasswordController.text,
-  //     );
-  //     if (user != null) {
-  //       if (!mounted) return;
-  //       Get.to(() => Signinscreen());
-  //     } else {
-  //       if (!mounted) return;
-  //       Get.snackbar("Invalided", "Register failed");
-  //     }
-  //   } catch (e) {
-  //     throw Exception();
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() {
-  //         isloading = false;
-  //       });
-  //     }
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,7 +46,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                   children: [
                     // Image.asset('assets/images/logo.png'),
                     Text(
-                      'Dz-RoomFinder',
+                      'Room-Dz',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -244,59 +210,47 @@ class _RegisterscreenState extends State<Registerscreen> {
                     onPressed: isloading
                         ? null
                         : () async {
-                      if (_passwordController.text !=
-                          _confirmPasswordController.text) {
-                        Get.snackbar(
-                          'Error',
-                          'Passwords do not match',
-                        );
-                        return;
-                      }
+                            if (_passwordController.text !=
+                                _confirmPasswordController.text) {
+                              Get.snackbar('Error', 'Passwords do not match');
+                              return;
+                            }
 
-                      if (!_isAgreed) {
-                        Get.snackbar(
-                          'Error',
-                          'Please agree to the terms',
-                        );
-                        return;
-                      }
+                            if (!_isAgreed) {
+                              Get.snackbar(
+                                'Error',
+                                'Please agree to the terms',
+                              );
+                              return;
+                            }
 
-                      setState(() {
-                        isloading = true;
-                      });
+                            setState(() {
+                              isloading = true;
+                            });
 
-                      try {
-                        final result = await authService.register(
-                          name: _fullNameController.text.trim(),
-                          email: _emailController.text.trim(),
-                          password: _passwordController.text,
-                        );
+                            try {
+                              final result = await authService.register(
+                                name: _fullNameController.text.trim(),
+                                email: _emailController.text.trim(),
+                                password: _passwordController.text,
+                                phone: _phoneController.text.trim(),
+                              );
 
-                        log(result.toString());
-
-                        Get.snackbar(
-                          'Success',
-                          'Register successful',
-                        );
-
-                        Get.off(() => Signinscreen());
-
-                      } catch (e) {
-                        log('REGISTER ERROR: $e');
-
-                        Get.snackbar(
-                          'Register Failed',
-                          e.toString(),
-                        );
-
-                      } finally {
-                        if (mounted) {
-                          setState(() {
-                            isloading = false;
-                          });
-                        }
-                      }
-                    },
+                              Get.snackbar('Success', 'Register successful');
+                              Get.off(() => Signinscreen());
+                            } on DioException catch (e) {
+                              // Extract custom error message from backend response if available
+                              final message =
+                                  e.response?.data['message'] ?? e.message;
+                              log('REGISTER ERROR: $message');
+                              Get.snackbar(
+                                'Register Failed',
+                                message.toString(),
+                              );
+                            } catch (e) {
+                              Get.snackbar('Error', e.toString());
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       elevation: 0,
@@ -403,3 +357,8 @@ class _RegisterscreenState extends State<Registerscreen> {
     );
   }
 }
+/*
+admin123
+admin123@gmail.com
+
+*/

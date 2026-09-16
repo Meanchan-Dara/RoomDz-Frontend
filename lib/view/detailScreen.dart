@@ -8,7 +8,6 @@ import 'package:roomdz_frontend/controller/favorite_controller.dart';
 import 'package:roomdz_frontend/model/roomModel.dart';
 import 'package:roomdz_frontend/rooms/room_detail_model.dart';
 import 'package:roomdz_frontend/service/rooms/room_service.dart';
-import 'package:roomdz_frontend/util/google_map_util.dart';
 import 'package:roomdz_frontend/util/url_util.dart';
 import 'package:roomdz_frontend/widget/skeleton/detail_screen_skeleton.dart';
 
@@ -101,7 +100,7 @@ class _DetailscreenState extends State<Detailscreen> {
                     height: 40,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white60,
+                      color: Colors.white54,
                     ),
                     child: Obx(() {
                       final isFavorite = favoriteController.isFavorite(room.id);
@@ -112,7 +111,7 @@ class _DetailscreenState extends State<Detailscreen> {
                         },
                         icon: Icon(
                           isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? Colors.red : Colors.grey,
+                          color: isFavorite ? Colors.red : Colors.black,
                         ),
                       );
                     }),
@@ -326,14 +325,14 @@ class _DetailscreenState extends State<Detailscreen> {
                                     fontSize: 18,
                                   ),
                                 ),
-                                TextButton.icon(
-                                  onPressed: () => GoogleMapUtil.openGoogleMaps(
-                                    latitude: room.location.latitude,
-                                    longitude: room.location.longitude,
-                                  ),
-                                  icon: const Icon(Icons.open_in_new, size: 16),
-                                  label: const Text('Google Maps'),
-                                ),
+                                // TextButton.icon(
+                                //   onPressed: () => GoogleMapUtil.openGoogleMaps(
+                                //     latitude: room.location.latitude,
+                                //     longitude: room.location.longitude,
+                                //   ),
+                                //   icon: const Icon(Icons.open_in_new, size: 16),
+                                //   label: const Text('Google Maps'),
+                                // ),
                               ],
                             ),
                             const SizedBox(height: 10),

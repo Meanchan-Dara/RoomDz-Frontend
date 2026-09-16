@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:roomdz_frontend/const/port.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -15,7 +16,7 @@ class ApiService {
 
   late final Dio dio = Dio(
     BaseOptions(
-      baseUrl: 'http://10.0.2.2:8000/api',
+      baseUrl: '$port/api',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',

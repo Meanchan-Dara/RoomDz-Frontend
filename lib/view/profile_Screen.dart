@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
+import 'package:roomdz_frontend/service/auth_service.dart';
+import 'package:roomdz_frontend/view/registerScreen.dart';
+import 'package:roomdz_frontend/view/signInScreen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,25 +14,12 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   @override
+  final AuthService authService = AuthService();
+
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgsf,
       appBar: AppBar(
-        // actionsPadding: EdgeInsets.symmetric(horizontal: 16),
-        // actions: [Icon(Icons.notifications_outlined, size: 32)],
-        // leading: Padding(
-        //   padding: EdgeInsetsGeometry.symmetric(horizontal: 8),
-        //   child: Container(
-        //     decoration: BoxDecoration(
-        //       image: DecorationImage(
-        //         image: NetworkImage(
-        //           "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-        //         ),
-        //       ),
-        //       shape: BoxShape.circle,
-        //     ),
-        //   ),
-        // ),
         centerTitle: true,
         title: Text(
           'Dz-Room',
@@ -308,7 +299,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () {},
+              onTap: () async {
+                authService.logout();
+                Get.off(() => Signinscreen());
+              },
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Container(

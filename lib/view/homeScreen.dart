@@ -602,13 +602,20 @@ class RoomCard extends StatelessWidget {
             child: Obx(() {
               final isFavorite = favoriteController.isFavorite(room.id);
 
-              return IconButton(
-                onPressed: () {
-                  favoriteController.toggleFavorite(room.id);
-                },
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : Colors.grey,
+              return Container(
+                padding: EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  shape: BoxShape.circle,
+                ),
+                child: GestureDetector(
+                  onTap: () {
+                    favoriteController.toggleFavorite(room.id);
+                  },
+                  child: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : Colors.grey,
+                  ),
                 ),
               );
             }),

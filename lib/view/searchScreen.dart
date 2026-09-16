@@ -122,10 +122,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
           const SizedBox(height: 12),
 
-          _buildLocationButton(),
-
-          const SizedBox(height: 12),
-
           _buildCategories(),
 
           const SizedBox(height: 8),
