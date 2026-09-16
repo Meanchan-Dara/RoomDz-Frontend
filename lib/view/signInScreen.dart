@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
+import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/view/homeScreen.dart';
 import 'package:roomdz_frontend/widget/parentScreen.dart';
 import 'package:roomdz_frontend/view/registerScreen.dart';
@@ -136,6 +137,8 @@ class _SigninscreenState extends State<Signinscreen> {
                             email: emailCtrl.text.trim(),
                             password: passCtrl.text,
                           );
+                          // Persist user + role so the app can auto-route on next launch
+                          await DatabaseService.instance.saveUser(user);
                           if (!mounted) return;
                           Get.off(
                             () => Parentscreen(),

@@ -325,17 +325,22 @@ class _DetailscreenState extends State<Detailscreen> {
                                     fontSize: 18,
                                   ),
                                 ),
-                                // TextButton.icon(
-                                //   onPressed: () => GoogleMapUtil.openGoogleMaps(
-                                //     latitude: room.location.latitude,
-                                //     longitude: room.location.longitude,
-                                //   ),
-                                //   icon: const Icon(Icons.open_in_new, size: 16),
-                                //   label: const Text('Google Maps'),
-                                // ),
+
+                                TextButton.icon(
+                                  onPressed: () {
+                                    _urlUtil.openGoogleMaps(
+                                      latitude: room.location.latitude,
+                                      longitude: room.location.longitude,
+                                    );
+                                  },
+                                  icon: const Icon(Icons.directions, size: 18),
+                                  label: const Text('Google Maps'),
+                                ),
                               ],
                             ),
+
                             const SizedBox(height: 10),
+
                             Container(
                               height: 200,
                               decoration: BoxDecoration(

@@ -40,6 +40,8 @@ class Datum {
   final int reviewsCount;
   final String address;
   final String image;
+  final double latitude;
+  final double longitude;
   final String createdAt;
   final String updatedAt;
 
@@ -55,6 +57,8 @@ class Datum {
     required this.reviewsCount,
     required this.address,
     required this.image,
+    required this.latitude,
+    required this.longitude,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -67,10 +71,12 @@ class Datum {
     type: json["type"],
     price: json["price"],
     status: json["status"],
-    rating: json["rating"]?.toDouble(),
+    rating: json["rating"]?.toDouble() ?? 0.0,
     reviewsCount: json["reviews_count"],
     address: json["address"],
     image: json["image"],
+    latitude: double.parse(json["latitude"].toString()),
+    longitude: double.parse(json["longitude"].toString()),
     createdAt: json["created_at"],
     updatedAt: json["updated_at"],
   );
@@ -87,6 +93,8 @@ class Datum {
     "reviews_count": reviewsCount,
     "address": address,
     "image": image,
+    "latitude": latitude,
+    "longitude": longitude,
     "created_at": createdAt,
     "updated_at": updatedAt,
   };
