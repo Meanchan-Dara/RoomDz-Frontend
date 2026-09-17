@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:dio/dio.dart';
 import 'package:roomdz_frontend/model/chatbot_models.dart';
 import 'package:roomdz_frontend/service/api_service.dart';
 
@@ -10,49 +10,61 @@ class ChatbotService {
     : apiService = apiService ?? ApiService();
 
   Future<ChatbotSuggestions> getSuggestions({String lang = 'en'}) async {
-    final response = await apiService.post(
-      '/chatbot/suggestions',
-      body: {'lang': lang},
-      requiresAuth: true,
-    );
+    try {
+      final response = await apiService.post(
+        '/chatbot/suggestions',
+        body: {'lang': lang},
+        requiresAuth: true,
+      );
 
-    final json = _decodeObject(response.body);
-    if (!_isOk(response.statusCode) || json['success'] != true) {
-      throw Exception(_errorMessage(json, 'Could not load suggestions.'));
+      final json = _decodeObject(response.data);
+      if (!_isOk(response.statusCode ?? 0) || json['success'] != true) {
+        throw Exception(_errorMessage(json, 'Could not load suggestions.'));
+      }
+
+      return ChatbotSuggestions.fromJson(
+        Map<String, dynamic>.from(json['data'] ?? const {}),
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final json = _decodeObject(data);
+      throw Exception(_errorMessage(json, e.message ?? 'Network error'));
     }
-
-    return ChatbotSuggestions.fromJson(
-      Map<String, dynamic>.from(json['data'] ?? const {}),
-    );
   }
 
   Future<ChatbotReply> sendMessage({
     required String message,
     int? conversationId,
   }) async {
-    final body = <String, dynamic>{
-      'message': message,
-      'session_id': await _sessionId(),
-    };
+    try {
+      final body = <String, dynamic>{
+        'message': message,
+        'session_id': await _sessionId(),
+      };
 
-    if (conversationId != null) {
-      body['conversation_id'] = conversationId;
+      if (conversationId != null) {
+        body['conversation_id'] = conversationId;
+      }
+
+      final response = await apiService.post(
+        '/chatbot/message',
+        body: body,
+        requiresAuth: true,
+      );
+
+      final json = _decodeObject(response.data);
+      if (!_isOk(response.statusCode ?? 0) || json['success'] != true) {
+        throw Exception(_errorMessage(json, 'Could not send message.'));
+      }
+
+      return ChatbotReply.fromJson(
+        Map<String, dynamic>.from(json['data'] ?? const {}),
+      );
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      final json = _decodeObject(data);
+      throw Exception(_errorMessage(json, e.message ?? 'Network error'));
     }
-
-    final response = await apiService.post(
-      '/chatbot/message',
-      body: body,
-      requiresAuth: true,
-    );
-
-    final json = _decodeObject(response.body);
-    if (!_isOk(response.statusCode) || json['success'] != true) {
-      throw Exception(_errorMessage(json, 'Could not send message.'));
-    }
-
-    return ChatbotReply.fromJson(
-      Map<String, dynamic>.from(json['data'] ?? const {}),
-    );
   }
 
   Future<String> _sessionId() async {
@@ -73,10 +85,16 @@ class ChatbotService {
 
   bool _isOk(int statusCode) => statusCode >= 200 && statusCode < 300;
 
-  Map<String, dynamic> _decodeObject(String body) {
-    final decoded = jsonDecode(body);
-    if (decoded is Map<String, dynamic>) return decoded;
-    if (decoded is Map) return Map<String, dynamic>.from(decoded);
+  Map<String, dynamic> _decodeObject(dynamic data) {
+    if (data is Map<String, dynamic>) return data;
+    if (data is Map) return Map<String, dynamic>.from(data);
+    if (data is String) {
+      try {
+        final decoded = jsonDecode(data);
+        if (decoded is Map<String, dynamic>) return decoded;
+        if (decoded is Map) return Map<String, dynamic>.from(decoded);
+      } catch (_) {}
+    }
     return const {};
   }
 

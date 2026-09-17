@@ -1,115 +1,81 @@
-import 'dart:convert';
-
-import 'package:roomdz_frontend/model/usreModel.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/api_service.dart';
+import 'api_client.dart';
 
 class AuthService {
-  final ApiService apiService = ApiService();
+  final Dio _dio = ApiClient.instance;
 
-  // login
-  Future<UserModel?> login(String email, String password) async {
-    final response = await apiService.post(
-      '/login',
-      body: {'email': email, 'password': password},
-    );
+  Future<UserModel> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final res = await _dio.post(
+        '/login',
+        data: {'email': email.trim(), 'password': password},
+      );
 
-    final data = jsonDecode(response.body);
+      debugPrint('LOGIN STATUS: ${res.statusCode}');
+      debugPrint('LOGIN RESPONSE: ${res.data}');
 
-    if (response.statusCode == 200) {
-      // Save Sanctum token
-      await apiService.storage.write(key: 'token', value: data['token']);
-      // Return user
-      return UserModel.fromJson(data['user']);
+      final token = res.data['token']?.toString() ?? '';
+      await ApiClient.saveToken(token);
+      await ApiService().saveToken(token);
+
+      return UserModel.fromJson(res.data['user']);
+    } on DioException catch (e) {
+      debugPrint('LOGIN ERROR STATUS: ${e.response?.statusCode}');
+      debugPrint('LOGIN ERROR DATA: ${e.response?.data}');
+      debugPrint('LOGIN ERROR MESSAGE: ${e.message}');
+      rethrow;
     }
-
-    return null;
   }
 
-  // register - returns user or null (simple version)
-  Future<UserModel?> resgister(
-    String name,
-    String email,
-    String phone,
-    String password,
-    String confirmPassword,
-  ) async {
-    final response = await apiService.post(
+  Future<UserModel> register({
+    required String name,
+    required String email,
+    required String password,
+    String role = 'customer',
+    String? phone,
+  }) async {
+    final res = await _dio.post(
       '/register',
-      body: {
+      data: {
         'name': name,
         'email': email,
-        'phone': phone,
         'password': password,
-        'password_confirmation': confirmPassword,
+        'password_confirmation': password,
+        'role': role,
+        if (phone != null) 'phone': phone,
       },
     );
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 201) {
-      // Save token returned from backend
-      await apiService.storage.write(key: 'token', value: data['token']);
-      return UserModel.fromJson(data['user']);
-    }
-    return null;
+
+    final token = res.data['token']?.toString() ?? '';
+    await ApiClient.saveToken(token);
+    await ApiService().saveToken(token);
+
+    return UserModel.fromJson(res.data['user']);
   }
 
-  // register with full error reporting - returns {'user': UserModel?, 'error': String?}
-  Future<Map<String, dynamic>> registerWithResult(
-    String name,
-    String email,
-    String phone,
-    String password,
-    String confirmPassword,
-  ) async {
-    try {
-      final response = await apiService.post(
-        '/register',
-        body: {
-          'name': name,
-          'email': email,
-          'phone': phone,
-          'password': password,
-          'password_confirmation': confirmPassword,
-        },
-      );
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 201) {
-        // Save token returned from backend
-        await apiService.storage.write(key: 'token', value: data['token']);
-        return {'user': UserModel.fromJson(data['user']), 'error': null};
-      }
-
-      // Extract real validation error from backend (422, 409, etc.)
-      String errorMsg = data['message'] ?? 'Register failed';
-      if (data['errors'] != null) {
-        final errors = data['errors'] as Map<String, dynamic>;
-        errorMsg = errors.values
-            .expand((e) => e is List ? e.cast<String>() : [e.toString()])
-            .join('\n');
-      }
-      return {'user': null, 'error': errorMsg};
-    } catch (e) {
-      return {'user': null, 'error': 'Network error: $e'};
-    }
-  }
-
-  // get profile
   Future<UserModel?> getProfile() async {
-    final response = await apiService.get('/profile', requiresAuth: true);
-    final data = jsonDecode(response.body);
-    if (response.statusCode == 200) {
-      return UserModel.fromJson(data['user'] ?? data);
-    }
+    try {
+      final res = await _dio.get('/profile');
+      if (res.statusCode == 200) {
+        final data = res.data;
+        return UserModel.fromJson(data['user'] ?? data);
+      }
+    } catch (_) {}
     return null;
   }
 
-  // logout
-  Future<bool> logout() async {
-    final response = await apiService.post('/logout', requiresAuth: true);
-    if (response.statusCode == 200) {
-      await apiService.clearToken();
-      return true;
+  Future<void> logout() async {
+    try {
+      await _dio.post('/logout');
+    } finally {
+      await ApiClient.clearToken();
+      await ApiService().removeToken();
     }
-    return false;
   }
 }

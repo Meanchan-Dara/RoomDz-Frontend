@@ -1,8 +1,10 @@
+import 'dart:developer';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
-import 'package:roomdz_frontend/view/signInScreen.dart';
+import 'package:roomdz_frontend/view/user/signInScreen.dart';
 
 class Registerscreen extends StatefulWidget {
   const Registerscreen({super.key});
@@ -24,51 +26,15 @@ class _RegisterscreenState extends State<Registerscreen> {
   // backend section
   bool isloading = false;
   final AuthService authService = AuthService();
-  Future<void> resgister() async {
-    if (!_isAgreed) {
-      Get.snackbar("Required", "Please agree to the Terms and Privacy Policy");
-      return;
-    }
-    if (_passwordController.text != _confirmPasswordController.text) {
-      Get.snackbar("Incorrect", "Passwords do not match");
-      return;
-    }
 
-    setState(() {
-      isloading = true;
-    });
-
-    try {
-      final result = await authService.registerWithResult(
-        _fullNameController.text.trim(),
-        _emailController.text.trim(),
-        _phoneController.text.trim(),
-        _passwordController.text,
-        _confirmPasswordController.text,
-      );
-
-      if (!mounted) return;
-
-      if (result['user'] != null) {
-        Get.to(() => Signinscreen());
-      } else {
-        final errorMsg = result['error'] ?? 'Register failed';
-        Get.snackbar(
-          "Register Failed",
-          errorMsg,
-          duration: const Duration(seconds: 4),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      Get.snackbar("Error", "Something went wrong: $e");
-    } finally {
-      if (mounted) {
-        setState(() {
-          isloading = false;
-        });
-      }
-    }
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -85,15 +51,9 @@ class _RegisterscreenState extends State<Registerscreen> {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  // crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      width: 70,
-                      fit: BoxFit.fitWidth,
-                    ),
+                  children: const [
                     Text(
-                      'Dz-RoomFinder',
+                      'Room-Dz',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -105,7 +65,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                 ),
 
                 // title
-                Text(
+                const Text(
                   'បង្កើតគណនីរបស់អ្នក',
                   style: TextStyle(
                     fontSize: 22,
@@ -113,8 +73,8 @@ class _RegisterscreenState extends State<Registerscreen> {
                     color: Color(0xFF0F172A),
                   ),
                 ),
-                SizedBox(height: 6),
-                Text(
+                const SizedBox(height: 6),
+                const Text(
                   'ចូលរួមជាមួយ Dz-RoomFinder ដើម្បីស្វែងរក​​​បន្ទប់សម្រាប់ជួលដែលអ្នកពេញចិត្ត។',
                   style: TextStyle(
                     fontSize: 13,
@@ -122,56 +82,60 @@ class _RegisterscreenState extends State<Registerscreen> {
                     height: 1.4,
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildInputLabel('ឈ្មោះពេញ'),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 buildTextFromField(
                   text: 'សុភា.......',
                   preIcons: Icons.person_outlined,
                   ctrl: _fullNameController,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
 
                 //email
-                _buildInputLabel('អ៊ីមែល'), SizedBox(height: 8),
+                _buildInputLabel('អ៊ីមែល'),
+                const SizedBox(height: 8),
                 buildTextFromField(
                   text: 'email@example.com',
                   preIcons: Icons.email_outlined,
                   ctrl: _emailController,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
 
                 //Phone Number
-                _buildInputLabel('លេខទូរស័ព្ទ'), SizedBox(height: 8),
+                _buildInputLabel('លេខទូរស័ព្ទ'),
+                const SizedBox(height: 8),
                 buildTextFromField(
                   text: '+855 12345678',
                   preIcons: Icons.phone_outlined,
                   ctrl: _phoneController,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.phone,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
 
                 //Password
-                _buildInputLabel('ពាក្យសម្ងាត់'), SizedBox(height: 8),
+                _buildInputLabel('ពាក្យសម្ងាត់'),
+                const SizedBox(height: 8),
                 buildTextFromField(
                   text: '********',
                   preIcons: Icons.lock_outline,
                   ctrl: _passwordController,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.text,
                   obscureText: _isObscure,
                   subIcons: _isObscure
                       ? Icons.visibility_outlined
                       : Icons.visibility_off,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-                //comfirm
-                _buildInputLabel('បញ្ជាក់ពាក្យសម្ងាត់'), SizedBox(height: 8),
+                //confirm
+                _buildInputLabel('បញ្ជាក់ពាក្យសម្ងាត់'),
+                const SizedBox(height: 8),
                 buildTextFromField(
                   text: '********',
                   preIcons: Icons.lock_outline,
                   ctrl: _confirmPasswordController,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.text,
                   isPassword: true,
                   obscureText: _isObscure,
                   subIcons: _isObscure
@@ -180,7 +144,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                 ),
 
                 // check and terms
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -207,7 +171,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                     Expanded(
                       child: Wrap(
                         children: [
-                          Text(
+                          const Text(
                             'ខ្ញុំយល់ព្រមតាម ',
                             style: TextStyle(
                               fontSize: 12,
@@ -216,7 +180,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                           ),
                           GestureDetector(
                             onTap: () {},
-                            child: Text(
+                            child: const Text(
                               'លក្ខខណ្ឌ និងកិច្ចព្រមព្រៀង',
                               style: TextStyle(
                                 fontSize: 12,
@@ -225,7 +189,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                               ),
                             ),
                           ),
-                          Text(
+                          const Text(
                             ' និង ',
                             style: TextStyle(
                               fontSize: 12,
@@ -234,7 +198,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                           ),
                           GestureDetector(
                             onTap: () {},
-                            child: Text(
+                            child: const Text(
                               'គោលការណ៍ឯកជនភាព',
                               style: TextStyle(
                                 fontSize: 12,
@@ -249,12 +213,60 @@ class _RegisterscreenState extends State<Registerscreen> {
                   ],
                 ),
                 //ele make acc
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: isloading ? null : resgister,
+                    onPressed: isloading
+                        ? null
+                        : () async {
+                            if (_passwordController.text !=
+                                _confirmPasswordController.text) {
+                              Get.snackbar('Error', 'Passwords do not match');
+                              return;
+                            }
+
+                            if (!_isAgreed) {
+                              Get.snackbar(
+                                'Error',
+                                'Please agree to the terms',
+                              );
+                              return;
+                            }
+
+                            setState(() {
+                              isloading = true;
+                            });
+
+                            try {
+                              await authService.register(
+                                name: _fullNameController.text.trim(),
+                                email: _emailController.text.trim(),
+                                password: _passwordController.text,
+                                phone: _phoneController.text.trim(),
+                              );
+
+                              Get.snackbar('Success', 'Register successful');
+                              Get.off(() => const Signinscreen());
+                            } on DioException catch (e) {
+                              final message =
+                                  e.response?.data?['message'] ?? e.message;
+                              log('REGISTER ERROR: $message');
+                              Get.snackbar(
+                                'Register Failed',
+                                message.toString(),
+                              );
+                            } catch (e) {
+                              Get.snackbar('Error', e.toString());
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  isloading = false;
+                                });
+                              }
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       elevation: 0,
@@ -262,19 +274,17 @@ class _RegisterscreenState extends State<Registerscreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: isloading
-                        ? CircularProgressIndicator()
-                        : Text(
-                            'បង្កើតគណនី',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                    child: const Text(
+                      'បង្កើតគណនី',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 //already have ?
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -285,7 +295,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Get.to(() => Signinscreen());
+                        Get.to(() => const Signinscreen());
                       },
                       child: const Text(
                         'ចូលប្រព័ន្ធ',
@@ -332,8 +342,8 @@ class _RegisterscreenState extends State<Registerscreen> {
       controller: ctrl,
       decoration: InputDecoration(
         hintText: text,
-        hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-        prefixIcon: Icon(preIcons, color: Color(0xFF64748B)),
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+        prefixIcon: Icon(preIcons, color: const Color(0xFF64748B)),
         suffixIcon: IconButton(
           icon: Icon(subIcons, color: const Color(0xFF64748B)),
           onPressed: () {
@@ -347,15 +357,15 @@ class _RegisterscreenState extends State<Registerscreen> {
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Color.fromARGB(255, 199, 219, 246)),
+          borderSide: const BorderSide(color: Color.fromARGB(255, 199, 219, 246)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
     );

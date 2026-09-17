@@ -1,122 +1,95 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
+import 'package:roomdz_frontend/const/port.dart';
 
 class ApiService {
-  static const String _configuredBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
+  static final ApiService _instance = ApiService._internal();
+
+  factory ApiService() {
+    return _instance;
+  }
+
+  ApiService._internal();
+
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
+
+  String get baseUrl => '$port/api';
+
+  late final Dio dio = Dio(
+    BaseOptions(
+      baseUrl: '$port/api',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    ),
   );
 
-  String get baseUrl {
-    if (_configuredBaseUrl.isNotEmpty) {
-      return _configuredBaseUrl;
+  Future<void> initialize() async {
+    final token = await storage.read(key: 'token') ?? await storage.read(key: 'auth_token');
+
+    if (token != null) {
+      dio.options.headers['Authorization'] = 'Bearer $token';
     }
-
-    if (kIsWeb) {
-      return 'http://localhost:8000/api';
-    }
-
-    return defaultTargetPlatform == TargetPlatform.android
-        ? 'http://10.0.2.2:8000/api'
-        : 'http://localhost:8000/api';
   }
 
-  final FlutterSecureStorage storage =
-      const FlutterSecureStorage();
+  Future<void> saveToken(String token) async {
+    await storage.write(key: 'token', value: token);
+    await storage.write(key: 'auth_token', value: token);
 
-  // Get token from secure storage
-  Future<String?> getToken() async {
-    return await storage.read(key: 'token');
+    dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
-  // Common headers
-  Future<Map<String, String>> getHeaders({
-    bool requiresAuth = false,
-  }) async {
-    final headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-
-    if (requiresAuth) {
-      final token = await getToken();
-
-      if (token != null) {
-        headers['Authorization'] = 'Bearer $token';
-      }
-    }
-
-    return headers;
-  }
-
-  // GET request
-  Future<http.Response> get(
-    String endpoint, {
-    bool requiresAuth = false,
-  }) async {
-    final headers = await getHeaders(
-      requiresAuth: requiresAuth,
-    );
-
-    return await http.get(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: headers,
-    );
-  }
-
-  // POST request
-  Future<http.Response> post(
-    String endpoint, {
-    Map<String, dynamic>? body,
-    bool requiresAuth = false,
-  }) async {
-    final headers = await getHeaders(
-      requiresAuth: requiresAuth,
-    );
-
-    return await http.post(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: headers,
-      body: body != null ? jsonEncode(body) : null,
-    );
-  }
-
-  // PUT request
-  Future<http.Response> put(
-    String endpoint, {
-    Map<String, dynamic>? body,
-    bool requiresAuth = false,
-  }) async {
-    final headers = await getHeaders(
-      requiresAuth: requiresAuth,
-    );
-
-    return await http.put(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: headers,
-      body: body != null ? jsonEncode(body) : null,
-    );
-  }
-
-  // DELETE request
-  Future<http.Response> delete(
-    String endpoint, {
-    bool requiresAuth = false,
-  }) async {
-    final headers = await getHeaders(
-      requiresAuth: requiresAuth,
-    );
-
-    return await http.delete(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: headers,
-    );
-  }
-
-  // Remove token
-  Future<void> clearToken() async {
+  Future<void> removeToken() async {
     await storage.delete(key: 'token');
+    await storage.delete(key: 'auth_token');
+
+    dio.options.headers.remove('Authorization');
+  }
+
+  Future<void> clearToken() async {
+    await removeToken();
+  }
+
+  Future<Response> get(
+    String endpoint, {
+    bool requiresAuth = false,
+  }) async {
+    if (requiresAuth) {
+      await initialize();
+    }
+    return await dio.get(endpoint);
+  }
+
+  Future<Response> post(
+    String endpoint, {
+    dynamic body,
+    bool requiresAuth = false,
+  }) async {
+    if (requiresAuth) {
+      await initialize();
+    }
+    return await dio.post(endpoint, data: body);
+  }
+
+  Future<Response> put(
+    String endpoint, {
+    dynamic body,
+    bool requiresAuth = false,
+  }) async {
+    if (requiresAuth) {
+      await initialize();
+    }
+    return await dio.put(endpoint, data: body);
+  }
+
+  Future<Response> delete(
+    String endpoint, {
+    bool requiresAuth = false,
+  }) async {
+    if (requiresAuth) {
+      await initialize();
+    }
+    return await dio.delete(endpoint);
   }
 }

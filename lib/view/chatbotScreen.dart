@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/chatbot_models.dart';
 import 'package:roomdz_frontend/service/chatbot_service.dart';
+import 'package:roomdz_frontend/view/user/detailScreen.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -282,9 +284,7 @@ class _RoomCard extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Room #${room.id}: ${room.name}')),
-        );
+        Get.to(() => Detailscreen(id: room.id));
       },
       child: Container(
         width: 220,

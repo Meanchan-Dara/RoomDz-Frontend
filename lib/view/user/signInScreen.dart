@@ -1,10 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
-import 'package:roomdz_frontend/model/usreModel.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
+import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/widget/parentScreen.dart';
-import 'package:roomdz_frontend/view/registerScreen.dart';
+import 'package:roomdz_frontend/widget/parent_screen_own.dart';
+import 'package:roomdz_frontend/view/user/registerScreen.dart';
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});
@@ -15,7 +17,6 @@ class Signinscreen extends StatefulWidget {
 
 class _SigninscreenState extends State<Signinscreen> {
   final TextEditingController emailCtrl = TextEditingController();
-
   final TextEditingController passCtrl = TextEditingController();
 
   bool _isObscure = false;
@@ -24,51 +25,8 @@ class _SigninscreenState extends State<Signinscreen> {
 
   bool isLoading = false;
 
-  Future<void> login() async {
-    setState(() {
-      isLoading = true;
-    });
-
-    try {
-      UserModel? user = await authService.login(
-        emailCtrl.text.trim(),
-        passCtrl.text,
-      );
-
-      if (user != null) {
-        print('Login successful');
-        print('User: ${user.name}');
-
-        if (!mounted) return;
-
-        Get.to(() => Parentscreen());
-      } else {
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid email or password')),
-        );
-      }
-    } catch (e) {
-      print('Login error: $e');
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
-    } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
-
   @override
   void dispose() {
-    // TODO: implement dispose
     emailCtrl.dispose();
     passCtrl.dispose();
     super.dispose();
@@ -89,18 +47,18 @@ class _SigninscreenState extends State<Signinscreen> {
                 width: double.maxFinite,
                 height: 250,
               ),
-              Text(
-                "សូមស្វាគមន៍មកកាន់ Dz-Room",
+              const Text(
+                "សូមស្វាគមន៍មកកាន់ Room-Dz",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 8),
-              Text(
+              const SizedBox(height: 8),
+              const Text(
                 'ស្វែងរកបន្ទប់ដែលអ្នកពេញចិត្ត',
                 style: TextStyle(fontSize: 16),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
 
-              Align(
+              const Align(
                 alignment: AlignmentGeometry.topLeft,
                 child: Text(
                   'អ៊ីមែល',
@@ -111,14 +69,14 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               buildTextFromField(
                 subIcons: null,
                 preIcons: Icons.email_outlined,
                 text: 'បញ្ចូលអ៊ីមែលរបស់អ្នក',
                 ctrl: emailCtrl,
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
 
               // for get pass
               Row(
@@ -145,7 +103,7 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               //password
               buildTextFromField(
                 obscureText: _isObscure,
@@ -158,7 +116,7 @@ class _SigninscreenState extends State<Signinscreen> {
               ),
 
               // login
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -167,10 +125,48 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
                   elevation: .8,
                 ),
-                onPressed: isLoading ? null : login,
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        setState(() => isLoading = true);
+                        try {
+                          final user = await authService.login(
+                            email: emailCtrl.text.trim(),
+                            password: passCtrl.text,
+                          );
+                          // Persist user + role so the app can auto-route on next launch
+                          await DatabaseService.instance.saveUser(user);
+                          if (!mounted) return;
+
+                          Widget targetScreen;
+                          switch (DatabaseService.normalizeRole(
+                            user.role?.name,
+                          )) {
+                            // case 'admin':
+                            //   targetScreen = ParentScreenAdmin();
+                            //   break;
+                            case 'owner':
+                              targetScreen = const ParentScreenOwn();
+                              break;
+                            case 'customer':
+                            default:
+                              targetScreen = const Parentscreen();
+                          }
+
+                          Get.off(
+                            () => targetScreen,
+                          ); // Get.off, not Get.to — don't stack login on the back stack
+                        } on DioException catch (e) {
+                          final msg =
+                              e.response?.data?['message'] ?? 'Login failed';
+                          Get.snackbar('Error', msg);
+                        } finally {
+                          if (mounted) setState(() => isLoading = false);
+                        }
+                      },
                 child: isLoading
-                    ? CircularProgressIndicator()
-                    : Text(
+                    ? const CircularProgressIndicator()
+                    : const Text(
                         "ចូលប្រេីប្រាស់",
                         style: TextStyle(
                           fontSize: 16,
@@ -179,7 +175,7 @@ class _SigninscreenState extends State<Signinscreen> {
                         ),
                       ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
 
               //more options
               Row(
@@ -202,10 +198,10 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               // Continue with Google
               Container(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 width: double.infinity,
                 height: 60,
                 child: FilledButton(
@@ -245,7 +241,7 @@ class _SigninscreenState extends State<Signinscreen> {
                 ),
               ),
               // create account
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -255,7 +251,7 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Get.to(() => Registerscreen());
+                      Get.to(() => const Registerscreen());
                     },
                     child: const Text(
                       'បង្កើតគណនី',
@@ -279,16 +275,15 @@ class _SigninscreenState extends State<Signinscreen> {
     required IconData preIcons,
     bool obscureText = false,
     IconData? subIcons,
-
     required TextEditingController ctrl,
   }) {
     return TextFormField(
-      obscureText: obscureText,
       controller: ctrl,
+      obscureText: obscureText,
       decoration: InputDecoration(
         hintText: text,
-        hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-        prefixIcon: Icon(preIcons, color: Color(0xFF64748B)),
+        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+        prefixIcon: Icon(preIcons, color: const Color(0xFF64748B)),
         suffixIcon: IconButton(
           icon: Icon(subIcons, color: const Color(0xFF64748B)),
           onPressed: () {
@@ -302,15 +297,15 @@ class _SigninscreenState extends State<Signinscreen> {
         contentPadding: const EdgeInsets.symmetric(vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Color.fromARGB(255, 199, 219, 246)),
+          borderSide: const BorderSide(color: Color.fromARGB(255, 199, 219, 246)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
         ),
       ),
     );
