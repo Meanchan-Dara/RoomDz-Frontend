@@ -9,6 +9,7 @@ import 'package:roomdz_frontend/controller/profile_controller.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
+import 'package:roomdz_frontend/view/user/profile_contents/change_profile.dart';
 import 'package:roomdz_frontend/view/user/signInScreen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -33,15 +34,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUser();
   }
 
-  // load saved user
+  // load saved user and sync with API
   Future<void> _loadUser() async {
-    final user = await DatabaseService.instance.getSavedUser();
-
+    final localUser = await DatabaseService.instance.getSavedUser();
     if (mounted) {
       setState(() {
-        currentUser = user;
+        currentUser = localUser;
       });
     }
+
+    try {
+      final remoteUser = await authService.getProfile();
+      if (remoteUser != null && mounted) {
+        setState(() {
+          currentUser = remoteUser;
+        });
+      }
+    } catch (_) {}
   }
 
   // build profile screen
@@ -307,7 +316,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildMenuItem(
                       icon: Icons.person_outline_rounded,
                       title: 'កែប្រែប្រវត្តិរូប',
-                      onTap: () {},
+                      onTap: () async {
+                        final updated = await Get.to(() => const ChangeProfile());
+                        if (updated == true) {
+                          _loadUser();
+                        }
+                      },
                     ),
 
                     _buildMenuItem(

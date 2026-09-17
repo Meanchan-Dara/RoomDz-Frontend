@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/api_service.dart';
+import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'api_client.dart';
 
 class AuthService {
@@ -64,10 +65,49 @@ class AuthService {
       final res = await _dio.get('/profile');
       if (res.statusCode == 200) {
         final data = res.data;
-        return UserModel.fromJson(data['user'] ?? data);
+        final user = UserModel.fromJson(data['user'] ?? data);
+        await DatabaseService.instance.saveUser(user);
+        return user;
       }
     } catch (_) {}
     return null;
+  }
+
+  Future<UserModel> updateProfile({
+    String? name,
+    String? phone,
+    String? email,
+    String? avatarPath,
+  }) async {
+    try {
+      dynamic postData;
+
+      if (avatarPath != null && avatarPath.isNotEmpty) {
+        final filename = avatarPath.split('/').last.split(r'\').last;
+        final map = <String, dynamic>{
+          if (name != null && name.trim().isNotEmpty) 'name': name.trim(),
+          if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+          if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
+          'avatar': await MultipartFile.fromFile(avatarPath, filename: filename),
+        };
+        postData = FormData.fromMap(map);
+      } else {
+        postData = {
+          if (name != null && name.trim().isNotEmpty) 'name': name.trim(),
+          if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+          if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
+        };
+      }
+
+      final res = await _dio.post('/profile', data: postData);
+      final data = res.data;
+      final user = UserModel.fromJson(data['user'] ?? data);
+      await DatabaseService.instance.saveUser(user);
+      return user;
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'] ?? e.message ?? 'Update failed';
+      throw Exception(msg);
+    }
   }
 
   Future<void> logout() async {
