@@ -53,13 +53,19 @@ class DatabaseService {
             await db.execute('ALTER TABLE $_table ADD COLUMN telegram TEXT');
           } catch (_) {}
           try {
-            await db.execute('ALTER TABLE $_table ADD COLUMN location_tag TEXT');
+            await db.execute(
+              'ALTER TABLE $_table ADD COLUMN location_tag TEXT',
+            );
           } catch (_) {}
           try {
-            await db.execute('ALTER TABLE $_table ADD COLUMN bakong_account_id TEXT');
+            await db.execute(
+              'ALTER TABLE $_table ADD COLUMN bakong_account_id TEXT',
+            );
           } catch (_) {}
           try {
-            await db.execute('ALTER TABLE $_table ADD COLUMN bakong_merchant_name TEXT');
+            await db.execute(
+              'ALTER TABLE $_table ADD COLUMN bakong_merchant_name TEXT',
+            );
           } catch (_) {}
         }
       },

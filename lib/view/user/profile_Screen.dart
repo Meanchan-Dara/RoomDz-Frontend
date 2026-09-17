@@ -386,6 +386,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                         if (updated == true) {
                           _loadUser();
+                          Get.snackbar(
+                            'ជោគជ័យ',
+                            'បានកែប្រែប្រវត្តិរូបរួចរាល់',
+                            backgroundColor: const Color(0xFFDCFCE7),
+                            colorText: const Color(0xFF16A34A),
+                            icon: const Icon(
+                              Icons.check_circle_rounded,
+                              color: Color(0xFF16A34A),
+                            ),
+                            snackPosition: SnackPosition.TOP,
+                            margin: const EdgeInsets.all(16),
+                            borderRadius: 12,
+                            duration: const Duration(seconds: 2),
+                          );
                         }
                       },
                     ),

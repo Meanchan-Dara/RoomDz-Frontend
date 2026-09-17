@@ -211,15 +211,11 @@ class _ChangeProfileState extends State<ChangeProfile> {
         Get.find<ProfileController>().localAvatarPath.value = _pickedImagePath;
       }
 
-      Get.snackbar(
-        'ជោគជ័យ',
-        'បានកែប្រែប្រវត្តិរូបដោយជោគជ័យ',
-        backgroundColor: const Color(0xFFDCFCE7),
-        colorText: const Color(0xFF16A34A),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      await _showSuccessDialog();
 
-      Get.back(result: true);
+      if (mounted) {
+        Get.back(result: true);
+      }
     } catch (e) {
       Get.snackbar(
         'បរាជ័យ',
@@ -229,6 +225,67 @@ class _ChangeProfileState extends State<ChangeProfile> {
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
+  }
+
+  Future<void> _showSuccessDialog() async {
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        Future.delayed(const Duration(milliseconds: 1300), () {
+          if (ctx.mounted) {
+            Navigator.of(ctx).pop();
+          }
+        });
+        return Dialog(
+          elevation: 8,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFDCFCE7),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle_rounded,
+                    color: Color(0xFF16A34A),
+                    size: 46,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'ជោគជ័យ!',
+                  style: GoogleFonts.battambang(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'បានកែប្រែប្រវត្តិរូបដោយជោគជ័យ',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.battambang(
+                    fontSize: 14,
+                    color: const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   ImageProvider _resolveAvatarImage() {
@@ -438,7 +495,9 @@ class _ChangeProfileState extends State<ChangeProfile> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFDC2626).withValues(alpha: 0.1),
+                                  color: const Color(
+                                    0xFFDC2626,
+                                  ).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: const Icon(
@@ -478,7 +537,9 @@ class _ChangeProfileState extends State<ChangeProfile> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFFFFBEB),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFFDE68A)),
+                              border: Border.all(
+                                color: const Color(0xFFFDE68A),
+                              ),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,

@@ -275,9 +275,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 category.text,
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: isSelected
-                      ? FontWeight.bold
-                      : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected ? Colors.white : Colors.black87,
                 ),
               ),

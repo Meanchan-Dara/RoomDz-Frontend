@@ -94,8 +94,10 @@ class AuthService {
           if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
           if (telegram != null) 'telegram': telegram.trim(),
           if (locationTag != null) 'location_tag': locationTag.trim(),
-          if (bakongAccountId != null) 'bakong_account_id': bakongAccountId.trim(),
-          if (bakongMerchantName != null) 'bakong_merchant_name': bakongMerchantName.trim(),
+          if (bakongAccountId != null)
+            'bakong_account_id': bakongAccountId.trim(),
+          if (bakongMerchantName != null)
+            'bakong_merchant_name': bakongMerchantName.trim(),
           'avatar': await MultipartFile.fromFile(
             avatarPath,
             filename: filename,
@@ -109,8 +111,10 @@ class AuthService {
           if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
           if (telegram != null) 'telegram': telegram.trim(),
           if (locationTag != null) 'location_tag': locationTag.trim(),
-          if (bakongAccountId != null) 'bakong_account_id': bakongAccountId.trim(),
-          if (bakongMerchantName != null) 'bakong_merchant_name': bakongMerchantName.trim(),
+          if (bakongAccountId != null)
+            'bakong_account_id': bakongAccountId.trim(),
+          if (bakongMerchantName != null)
+            'bakong_merchant_name': bakongMerchantName.trim(),
         };
       }
 

@@ -29,7 +29,9 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] is int ? json['id'] : (int.tryParse(json['id']?.toString() ?? '0') ?? 0),
+      id: json['id'] is int
+          ? json['id']
+          : (int.tryParse(json['id']?.toString() ?? '0') ?? 0),
       name: (json['name'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
       phone: json['phone']?.toString(),
@@ -65,9 +67,10 @@ class RoleModel {
   final String name;
   RoleModel({required this.id, required this.name});
 
-  factory RoleModel.fromJson(Map<String, dynamic> json) =>
-      RoleModel(
-        id: json['id'] is int ? json['id'] : (int.tryParse(json['id']?.toString() ?? '0') ?? 0),
-        name: (json['name'] ?? '').toString(),
-      );
+  factory RoleModel.fromJson(Map<String, dynamic> json) => RoleModel(
+    id: json['id'] is int
+        ? json['id']
+        : (int.tryParse(json['id']?.toString() ?? '0') ?? 0),
+    name: (json['name'] ?? '').toString(),
+  );
 }
