@@ -24,6 +24,10 @@ class _ChangeProfileState extends State<ChangeProfile> {
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _phoneCtrl = TextEditingController();
   final TextEditingController _emailCtrl = TextEditingController();
+  final TextEditingController _telegramCtrl = TextEditingController();
+  final TextEditingController _locationTagCtrl = TextEditingController();
+  final TextEditingController _bakongAccountCtrl = TextEditingController();
+  final TextEditingController _bakongMerchantCtrl = TextEditingController();
 
   UserModel? _user;
   String? _pickedImagePath;
@@ -41,6 +45,10 @@ class _ChangeProfileState extends State<ChangeProfile> {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _emailCtrl.dispose();
+    _telegramCtrl.dispose();
+    _locationTagCtrl.dispose();
+    _bakongAccountCtrl.dispose();
+    _bakongMerchantCtrl.dispose();
     super.dispose();
   }
 
@@ -53,6 +61,10 @@ class _ChangeProfileState extends State<ChangeProfile> {
         _nameCtrl.text = localUser.name;
         _phoneCtrl.text = localUser.phone ?? '';
         _emailCtrl.text = localUser.email;
+        _telegramCtrl.text = localUser.telegram ?? '';
+        _locationTagCtrl.text = localUser.locationTag ?? '';
+        _bakongAccountCtrl.text = localUser.bakongAccountId ?? '';
+        _bakongMerchantCtrl.text = localUser.bakongMerchantName ?? '';
         _isLoading = false;
       });
     }
@@ -66,6 +78,10 @@ class _ChangeProfileState extends State<ChangeProfile> {
           _nameCtrl.text = remoteUser.name;
           _phoneCtrl.text = remoteUser.phone ?? '';
           _emailCtrl.text = remoteUser.email;
+          _telegramCtrl.text = remoteUser.telegram ?? '';
+          _locationTagCtrl.text = remoteUser.locationTag ?? '';
+          _bakongAccountCtrl.text = remoteUser.bakongAccountId ?? '';
+          _bakongMerchantCtrl.text = remoteUser.bakongMerchantName ?? '';
           _isLoading = false;
         });
       }
@@ -114,7 +130,10 @@ class _ChangeProfileState extends State<ChangeProfile> {
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.photo_camera_outlined, color: AppColors.primary),
+              leading: const Icon(
+                Icons.photo_camera_outlined,
+                color: AppColors.primary,
+              ),
               title: Text('ថតរូបភាព', style: GoogleFonts.battambang()),
               onTap: () {
                 Get.back();
@@ -122,8 +141,14 @@ class _ChangeProfileState extends State<ChangeProfile> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppColors.primary),
-              title: Text('ជ្រើសរើសពីវិចិត្រសាល', style: GoogleFonts.battambang()),
+              leading: const Icon(
+                Icons.photo_library_outlined,
+                color: AppColors.primary,
+              ),
+              title: Text(
+                'ជ្រើសរើសពីវិចិត្រសាល',
+                style: GoogleFonts.battambang(),
+              ),
               onTap: () {
                 Get.back();
                 _pickImage(ImageSource.gallery);
@@ -152,6 +177,10 @@ class _ChangeProfileState extends State<ChangeProfile> {
     final name = _nameCtrl.text.trim();
     final phone = _phoneCtrl.text.trim();
     final email = _emailCtrl.text.trim();
+    final telegram = _telegramCtrl.text.trim();
+    final locationTag = _locationTagCtrl.text.trim();
+    final bakongAccount = _bakongAccountCtrl.text.trim();
+    final bakongMerchant = _bakongMerchantCtrl.text.trim();
 
     if (name.isEmpty) {
       Get.snackbar('កំហុស', 'សូមបញ្ចូលឈ្មោះ');
@@ -170,6 +199,10 @@ class _ChangeProfileState extends State<ChangeProfile> {
         name: name,
         phone: phone,
         email: email,
+        telegram: telegram,
+        locationTag: locationTag,
+        bakongAccountId: bakongAccount,
+        bakongMerchantName: bakongMerchant,
         avatarPath: _pickedImagePath,
       );
 
@@ -354,9 +387,143 @@ class _ChangeProfileState extends State<ChangeProfile> {
                           icon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                         ),
+
+                        const SizedBox(height: 18),
+
+                        // Telegram
+                        _buildLabel('តេឡេក្រាម (Telegram)'),
+                        const SizedBox(height: 8),
+                        _buildInputField(
+                          controller: _telegramCtrl,
+                          hint: 'ឧ. @username ឬ https://t.me/...',
+                          icon: Icons.send_rounded,
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        // Location Tag
+                        _buildLabel('តំបន់ / ទីតាំង (Location)'),
+                        const SizedBox(height: 8),
+                        _buildInputField(
+                          controller: _locationTagCtrl,
+                          hint: 'ឧ. រាជធានីភ្នំពេញ, ខណ្ឌទួលគោក',
+                          icon: Icons.location_on_outlined,
+                        ),
                       ],
                     ),
                   ),
+
+                  // Bakong KHQR Configuration for Owner
+                  if (_user?.isOwner == true) ...[
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDC2626).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.qr_code_2_rounded,
+                                  color: Color(0xFFDC2626),
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'ការកំណត់បង់ប្រាក់បាគង (Bakong KHQR)',
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF0F172A),
+                                      ),
+                                    ),
+                                    Text(
+                                      'សម្រាប់បង្កើតកូដ KHQR ទទួលប្រាក់កក់បន្ទប់',
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 12,
+                                        color: const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFFBEB),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFFDE68A)),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.info_outline,
+                                  color: Color(0xFFD97706),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'សូមបញ្ចូលគណនីបាគងត្រឹមត្រូវ ដើម្បីឱ្យប្រព័ន្ធអាចបង្កើត QR កូដស្វ័យប្រវត្តិចំពោះការកក់បន្ទប់។',
+                                    style: GoogleFonts.battambang(
+                                      fontSize: 12,
+                                      color: const Color(0xFF92400E),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Bakong Account ID
+                          _buildLabel('លេខគណនីបាគង (Bakong Account ID)'),
+                          const SizedBox(height: 8),
+                          _buildInputField(
+                            controller: _bakongAccountCtrl,
+                            hint: 'ឧ. username@aclb ឬ 012345678@wing',
+                            icon: Icons.account_balance_wallet_outlined,
+                          ),
+                          const SizedBox(height: 18),
+                          // Bakong Merchant Name
+                          _buildLabel('ឈ្មោះម្ចាស់គណនី / ហាង (Merchant Name)'),
+                          const SizedBox(height: 8),
+                          _buildInputField(
+                            controller: _bakongMerchantCtrl,
+                            hint: 'ឧ. បន្ទប់ជួល វណ្ណៈ ឬ DARA APARTMENT',
+                            icon: Icons.storefront_outlined,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
 
                   const SizedBox(height: 28),
 

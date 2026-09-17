@@ -63,9 +63,16 @@ class Parentscreen extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
-                  icon: const Icon(Icons.location_on, size: 25, color: Colors.white),
+                  icon: const Icon(
+                    Icons.location_on,
+                    size: 25,
+                    color: Colors.white,
+                  ),
                   title: 'ទីតាំង',
-                  inactiveIcon: const Icon(Icons.location_on_outlined, size: 25),
+                  inactiveIcon: const Icon(
+                    Icons.location_on_outlined,
+                    size: 25,
+                  ),
                   activeForegroundColor: AppColors.primary,
                   inactiveForegroundColor: Colors.grey,
                 ),

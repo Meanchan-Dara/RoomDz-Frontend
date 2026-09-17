@@ -38,8 +38,10 @@ class OwnerRoomService {
       final response = await _dio.get(
         '/owner/rooms',
         queryParameters: {
-          if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
-          if (status != null && status.trim().isNotEmpty) 'status': status.trim(),
+          if (search != null && search.trim().isNotEmpty)
+            'search': search.trim(),
+          if (status != null && status.trim().isNotEmpty)
+            'status': status.trim(),
         },
       );
 

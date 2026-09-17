@@ -327,7 +327,7 @@ class _HomescreenState extends State<Homescreen> {
   // category filter
   Widget _buildCategory() {
     return SizedBox(
-      height: 65,
+      height: 42,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
@@ -346,40 +346,24 @@ class _HomescreenState extends State<Homescreen> {
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 75,
-              margin: const EdgeInsets.only(right: 12),
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isSelected ? AppColors.primary : Colors.grey.shade300,
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    category.icon,
-                    size: 26,
-                    color: isSelected ? Colors.white : Colors.black87,
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    category.text,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                ],
+              child: Text(
+                category.text,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? Colors.white : Colors.black87,
+                ),
               ),
             ),
           );

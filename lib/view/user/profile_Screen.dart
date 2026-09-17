@@ -192,6 +192,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
 
+                  // Telegram if available
+                  if (currentUser?.telegram != null &&
+                      currentUser!.telegram!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.send_rounded,
+                          size: 15,
+                          color: Color(0xFF0284C7),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          currentUser!.telegram!,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF0284C7),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  // Bakong KHQR for Owner
+                  if (currentUser?.isOwner == true &&
+                      currentUser?.bakongAccountId != null &&
+                      currentUser!.bakongAccountId!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDC2626).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFDC2626).withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.qr_code_2_rounded,
+                            size: 15,
+                            color: Color(0xFFDC2626),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Bakong KHQR: ${currentUser!.bakongAccountId!}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFFDC2626),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 16),
 
                   const Divider(height: 1, thickness: 1, color: Colors.black12),
@@ -317,7 +381,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.person_outline_rounded,
                       title: 'កែប្រែប្រវត្តិរូប',
                       onTap: () async {
-                        final updated = await Get.to(() => const ChangeProfile());
+                        final updated = await Get.to(
+                          () => const ChangeProfile(),
+                        );
                         if (updated == true) {
                           _loadUser();
                         }

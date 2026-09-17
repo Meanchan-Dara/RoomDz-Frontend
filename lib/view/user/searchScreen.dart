@@ -126,6 +126,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
           const SizedBox(height: 12),
 
+          _buildLocationButton(),
+
+          const SizedBox(height: 12),
+
           _buildCategories(),
 
           const SizedBox(height: 8),
@@ -241,7 +245,7 @@ class _SearchScreenState extends State<SearchScreen> {
   // category list
   Widget _buildCategories() {
     return SizedBox(
-      height: 48,
+      height: 42,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
@@ -258,35 +262,24 @@ class _SearchScreenState extends State<SearchScreen> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(right: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isSelected ? AppColors.primary : Colors.grey.shade300,
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    category.icon,
-                    size: 19,
-                    color: isSelected ? Colors.white : Colors.black87,
-                  ),
-
-                  const SizedBox(width: 6),
-
-                  Text(
-                    category.text,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                      color: isSelected ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                ],
+              child: Text(
+                category.text,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: isSelected ? Colors.white : Colors.black87,
+                ),
               ),
             ),
           );
@@ -418,7 +411,11 @@ class SearchRoomCard extends StatelessWidget {
                       width: 120,
                       height: 140,
                       color: Colors.grey.shade200,
-                      child: const Icon(Icons.apartment_outlined, size: 40, color: Colors.grey),
+                      child: const Icon(
+                        Icons.apartment_outlined,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
                     ),
             ),
 

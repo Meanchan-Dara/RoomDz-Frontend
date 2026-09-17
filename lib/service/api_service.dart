@@ -26,7 +26,9 @@ class ApiService {
   );
 
   Future<void> initialize() async {
-    final token = await storage.read(key: 'token') ?? await storage.read(key: 'auth_token');
+    final token =
+        await storage.read(key: 'token') ??
+        await storage.read(key: 'auth_token');
 
     if (token != null) {
       dio.options.headers['Authorization'] = 'Bearer $token';
@@ -51,10 +53,7 @@ class ApiService {
     await removeToken();
   }
 
-  Future<Response> get(
-    String endpoint, {
-    bool requiresAuth = false,
-  }) async {
+  Future<Response> get(String endpoint, {bool requiresAuth = false}) async {
     if (requiresAuth) {
       await initialize();
     }
@@ -83,10 +82,7 @@ class ApiService {
     return await dio.put(endpoint, data: body);
   }
 
-  Future<Response> delete(
-    String endpoint, {
-    bool requiresAuth = false,
-  }) async {
+  Future<Response> delete(String endpoint, {bool requiresAuth = false}) async {
     if (requiresAuth) {
       await initialize();
     }

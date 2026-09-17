@@ -77,6 +77,10 @@ class AuthService {
     String? name,
     String? phone,
     String? email,
+    String? telegram,
+    String? locationTag,
+    String? bakongAccountId,
+    String? bakongMerchantName,
     String? avatarPath,
   }) async {
     try {
@@ -86,16 +90,27 @@ class AuthService {
         final filename = avatarPath.split('/').last.split(r'\').last;
         final map = <String, dynamic>{
           if (name != null && name.trim().isNotEmpty) 'name': name.trim(),
-          if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+          if (phone != null) 'phone': phone.trim(),
           if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
-          'avatar': await MultipartFile.fromFile(avatarPath, filename: filename),
+          if (telegram != null) 'telegram': telegram.trim(),
+          if (locationTag != null) 'location_tag': locationTag.trim(),
+          if (bakongAccountId != null) 'bakong_account_id': bakongAccountId.trim(),
+          if (bakongMerchantName != null) 'bakong_merchant_name': bakongMerchantName.trim(),
+          'avatar': await MultipartFile.fromFile(
+            avatarPath,
+            filename: filename,
+          ),
         };
         postData = FormData.fromMap(map);
       } else {
         postData = {
           if (name != null && name.trim().isNotEmpty) 'name': name.trim(),
-          if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+          if (phone != null) 'phone': phone.trim(),
           if (email != null && email.trim().isNotEmpty) 'email': email.trim(),
+          if (telegram != null) 'telegram': telegram.trim(),
+          if (locationTag != null) 'location_tag': locationTag.trim(),
+          if (bakongAccountId != null) 'bakong_account_id': bakongAccountId.trim(),
+          if (bakongMerchantName != null) 'bakong_merchant_name': bakongMerchantName.trim(),
         };
       }
 

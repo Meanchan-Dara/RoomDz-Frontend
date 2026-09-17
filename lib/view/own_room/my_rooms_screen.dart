@@ -221,7 +221,8 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final room = _rooms[index];
-        final isAvailable = room.status.toUpperCase() == 'AVAILABLE NOW' ||
+        final isAvailable =
+            room.status.toUpperCase() == 'AVAILABLE NOW' ||
             room.status.toUpperCase() == 'AVAILABLE';
 
         return InkWell(
@@ -258,7 +259,9 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
                             placeholder: (_, __) => Container(
                               color: Colors.grey.shade200,
                               child: const Center(
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                             ),
                             errorWidget: (_, __, ___) => Container(

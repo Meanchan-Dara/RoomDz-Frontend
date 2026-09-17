@@ -18,19 +18,27 @@ class RoomModel {
   factory RoomModel.fromJson(dynamic json) {
     if (json is List) {
       return RoomModel(
-        data: List<Datum>.from(json.map((x) => Datum.fromJson(Map<String, dynamic>.from(x)))),
+        data: List<Datum>.from(
+          json.map((x) => Datum.fromJson(Map<String, dynamic>.from(x))),
+        ),
       );
     }
     if (json is Map<String, dynamic> || json is Map) {
       final rawData = json["data"];
       List<Datum> items = [];
       if (rawData is List) {
-        items = List<Datum>.from(rawData.map((x) => Datum.fromJson(Map<String, dynamic>.from(x))));
+        items = List<Datum>.from(
+          rawData.map((x) => Datum.fromJson(Map<String, dynamic>.from(x))),
+        );
       }
       return RoomModel(
         data: items,
-        links: json["links"] != null ? Links.fromJson(Map<String, dynamic>.from(json["links"])) : null,
-        meta: json["meta"] != null ? Meta.fromJson(Map<String, dynamic>.from(json["meta"])) : null,
+        links: json["links"] != null
+            ? Links.fromJson(Map<String, dynamic>.from(json["links"]))
+            : null,
+        meta: json["meta"] != null
+            ? Meta.fromJson(Map<String, dynamic>.from(json["meta"]))
+            : null,
       );
     }
     return RoomModel(data: []);
@@ -79,7 +87,9 @@ class Datum {
   });
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
-    id: json["id"] is int ? json["id"] : (int.tryParse(json["id"]?.toString() ?? '0') ?? 0),
+    id: json["id"] is int
+        ? json["id"]
+        : (int.tryParse(json["id"]?.toString() ?? '0') ?? 0),
     categoryId: json["category_id"] is int
         ? json["category_id"]
         : (int.tryParse(json["category_id"]?.toString() ?? '0') ?? 0),
@@ -139,7 +149,9 @@ class Category {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
-    id: json["id"] is int ? json["id"] : (int.tryParse(json["id"]?.toString() ?? '0') ?? 0),
+    id: json["id"] is int
+        ? json["id"]
+        : (int.tryParse(json["id"]?.toString() ?? '0') ?? 0),
     name: (json["name"] ?? '').toString(),
     slug: (json["slug"] ?? '').toString(),
     image: json["image"],
@@ -159,12 +171,7 @@ class Links {
   final dynamic prev;
   final dynamic next;
 
-  Links({
-    this.first,
-    this.last,
-    this.prev,
-    this.next,
-  });
+  Links({this.first, this.last, this.prev, this.next});
 
   factory Links.fromJson(Map<String, dynamic> json) => Links(
     first: json["first"]?.toString(),
@@ -207,7 +214,11 @@ class Meta {
     from: (json["from"] as num?)?.toInt(),
     lastPage: (json["last_page"] as num?)?.toInt(),
     links: json["links"] is List
-        ? List<Link>.from(json["links"].map((x) => Link.fromJson(Map<String, dynamic>.from(x))))
+        ? List<Link>.from(
+            json["links"].map(
+              (x) => Link.fromJson(Map<String, dynamic>.from(x)),
+            ),
+          )
         : const [],
     path: json["path"]?.toString(),
     perPage: (json["per_page"] as num?)?.toInt(),

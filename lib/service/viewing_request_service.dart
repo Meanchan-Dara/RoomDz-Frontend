@@ -24,7 +24,8 @@ class ViewingRequestService {
   // add login token to request
   Future<void> _addToken() async {
     final token =
-        await storage.read(key: 'token') ?? await storage.read(key: 'auth_token');
+        await storage.read(key: 'token') ??
+        await storage.read(key: 'auth_token');
 
     if (token == null || token.isEmpty) {
       throw Exception('No login token found. Please login again.');

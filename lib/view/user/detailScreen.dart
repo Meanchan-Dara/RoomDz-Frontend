@@ -60,10 +60,10 @@ class _DetailscreenState extends State<Detailscreen> {
         final room = snapshot.data!.data;
 
         // Location coordinates
-        final LatLng roomLocation = LatLng(
-          room.location.latitude,
-          room.location.longitude,
-        );
+        final LatLng roomLocation =
+            (room.location.latitude != 0.0 && room.location.longitude != 0.0)
+            ? LatLng(room.location.latitude, room.location.longitude)
+            : const LatLng(11.5564, 104.9282);
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -122,15 +122,26 @@ class _DetailscreenState extends State<Detailscreen> {
                 expandedHeight: 320,
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
-                  background: Image.network(
-                    room.image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Icon(Icons.image_not_supported, size: 60),
-                      );
-                    },
-                  ),
+                  background: (room.image != null && room.image!.isNotEmpty)
+                      ? Image.network(
+                          room.image!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(Icons.image_not_supported, size: 60),
+                            );
+                          },
+                        )
+                      : Container(
+                          color: Colors.grey.shade200,
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 60,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
                 ),
               ),
 
@@ -209,7 +220,9 @@ class _DetailscreenState extends State<Detailscreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        room.about,
+                        room.about.isNotEmpty
+                            ? room.about
+                            : "គ្មានការពិពណ៌នាអំពីបន្ទប់នេះទេ",
                         style: TextStyle(
                           fontSize: 15,
                           height: 1.6,
@@ -403,17 +416,35 @@ class _DetailscreenState extends State<Detailscreen> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const CircleAvatar(
+                                CircleAvatar(
                                   radius: 28,
-                                  backgroundColor: Color(0xFFE2E8F0),
-                                  child: Text(
-                                    'SV',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0284C7),
-                                    ),
-                                  ),
+                                  backgroundColor: const Color(0xFFE2E8F0),
+                                  backgroundImage:
+                                      (room.landlord?.avatar != null &&
+                                          room.landlord!.avatar!.isNotEmpty)
+                                      ? NetworkImage(room.landlord!.avatar!)
+                                      : null,
+                                  child:
+                                      (room.landlord?.avatar == null ||
+                                          room.landlord!.avatar!.isEmpty)
+                                      ? Text(
+                                          (room.landlord?.name != null &&
+                                                  room.landlord!.name
+                                                      .trim()
+                                                      .isNotEmpty)
+                                              ? room.landlord!.name
+                                                    .trim()
+                                                    .characters
+                                                    .first
+                                                    .toUpperCase()
+                                              : 'SV',
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF0284C7),
+                                          ),
+                                        )
+                                      : null,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -425,9 +456,10 @@ class _DetailscreenState extends State<Detailscreen> {
                                         spacing: 8,
                                         runSpacing: 4,
                                         children: [
-                                          const Text(
-                                            'Sophea Vorn',
-                                            style: TextStyle(
+                                          Text(
+                                            room.landlord?.name ??
+                                                'Sophea Vorn',
+                                            style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                               color: Color(0xFF0F172A),
@@ -506,12 +538,12 @@ class _DetailscreenState extends State<Detailscreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 12),
-                                  const Expanded(
+                                  Expanded(
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
+                                        const Text(
                                           'Telegram',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
@@ -519,10 +551,11 @@ class _DetailscreenState extends State<Detailscreen> {
                                             fontSize: 15,
                                           ),
                                         ),
-                                        SizedBox(height: 2),
+                                        const SizedBox(height: 2),
                                         Text(
-                                          '@Sophea Vorn',
-                                          style: TextStyle(
+                                          room.landlord?.telegram ??
+                                              '@Sophea Vorn',
+                                          style: const TextStyle(
                                             color: Color(0xFF475569),
                                             fontSize: 13,
                                           ),
@@ -534,7 +567,13 @@ class _DetailscreenState extends State<Detailscreen> {
                                   const SizedBox(width: 8),
                                   ElevatedButton(
                                     onPressed: () {
-                                      final url = "https://t.me/s/numeducation";
+                                      final rawTg = room.landlord?.telegram
+                                          ?.replaceAll('@', '')
+                                          .trim();
+                                      final url =
+                                          (rawTg != null && rawTg.isNotEmpty)
+                                          ? "https://t.me/$rawTg"
+                                          : "https://t.me/s/numeducation";
                                       _urlUtil.open(url);
                                     },
                                     style: ElevatedButton.styleFrom(
@@ -587,12 +626,12 @@ class _DetailscreenState extends State<Detailscreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 12),
-                                  const Expanded(
+                                  Expanded(
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
+                                        const Text(
                                           'Phone Call',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
@@ -600,10 +639,11 @@ class _DetailscreenState extends State<Detailscreen> {
                                             fontSize: 15,
                                           ),
                                         ),
-                                        SizedBox(height: 2),
+                                        const SizedBox(height: 2),
                                         Text(
-                                          "+855 976394738",
-                                          style: TextStyle(
+                                          room.landlord?.phone ??
+                                              "+855 976394738",
+                                          style: const TextStyle(
                                             color: Color(0xFF475569),
                                             fontSize: 13,
                                           ),
@@ -615,7 +655,9 @@ class _DetailscreenState extends State<Detailscreen> {
                                   const SizedBox(width: 8),
                                   ElevatedButton(
                                     onPressed: () {
-                                      String number = "+855976394738";
+                                      String number =
+                                          room.landlord?.phone ??
+                                          "+855976394738";
                                       _urlUtil.open("tel:$number");
                                     },
                                     style: ElevatedButton.styleFrom(

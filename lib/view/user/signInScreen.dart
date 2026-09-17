@@ -301,7 +301,9 @@ class _SigninscreenState extends State<Signinscreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color.fromARGB(255, 199, 219, 246)),
+          borderSide: const BorderSide(
+            color: Color.fromARGB(255, 199, 219, 246),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),

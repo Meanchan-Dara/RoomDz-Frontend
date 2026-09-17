@@ -15,25 +15,36 @@ class RoomDetialModel {
 
   RoomDetialModel({required this.data});
 
-  factory RoomDetialModel.fromJson(Map<String, dynamic> json) =>
-      RoomDetialModel(data: Data.fromJson(json["data"]));
+  factory RoomDetialModel.fromJson(dynamic json) {
+    if (json is Map<String, dynamic> || json is Map) {
+      final map = Map<String, dynamic>.from(json);
+      if (map.containsKey('data') && map['data'] is Map) {
+        return RoomDetialModel(
+          data: Data.fromJson(Map<String, dynamic>.from(map['data'])),
+        );
+      }
+      return RoomDetialModel(data: Data.fromJson(map));
+    }
+    return RoomDetialModel(data: Data.empty());
+  }
 
   Map<String, dynamic> toJson() => {"data": data.toJson()};
 }
 
 class Data {
   final int id;
-  final int categoryId;
-  final Category category;
+  final int? categoryId;
+  final Category? category;
+  final Landlord? landlord;
   final String name;
   final String status;
-  final int price;
+  final num price;
   final double rating;
   final int reviewsCount;
   final String address;
   final String about;
   final String description;
-  final String image;
+  final String? image;
   final List<String> images;
   final int imagesCount;
   final List<String> facilities;
@@ -46,8 +57,9 @@ class Data {
 
   Data({
     required this.id,
-    required this.categoryId,
-    required this.category,
+    this.categoryId,
+    this.category,
+    this.landlord,
     required this.name,
     required this.status,
     required this.price,
@@ -56,7 +68,7 @@ class Data {
     required this.address,
     required this.about,
     required this.description,
-    required this.image,
+    this.image,
     required this.images,
     required this.imagesCount,
     required this.facilities,
@@ -69,33 +81,111 @@ class Data {
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
-    id: json["id"],
-    categoryId: json["category_id"],
-    category: Category.fromJson(json["category"]),
-    name: json["name"],
-    status: json["status"],
-    price: json["price"],
-    rating: json["rating"]?.toDouble(),
-    reviewsCount: json["reviews_count"],
-    address: json["address"],
-    about: json["about"],
-    description: json["description"],
-    image: json["image"],
-    images: List<String>.from(json["images"].map((x) => x)),
-    imagesCount: json["images_count"],
-    facilities: List<String>.from(json["facilities"].map((x) => x)),
-    roomInformation: RoomInformation.fromJson(json["room_information"]),
-    houseRules: List<String>.from(json["house_rules"].map((x) => x)),
-    location: Location.fromJson(json["location"]),
-    isFavorite: json["is_favorite"],
-    createdAt: json["created_at"],
-    updatedAt: json["updated_at"],
+    id: json["id"] is num
+        ? (json["id"] as num).toInt()
+        : (int.tryParse(json["id"]?.toString() ?? '0') ?? 0),
+    categoryId: json["category_id"] is num
+        ? (json["category_id"] as num).toInt()
+        : int.tryParse(json["category_id"]?.toString() ?? ''),
+    category: json["category"] != null && json["category"] is Map
+        ? Category.fromJson(Map<String, dynamic>.from(json["category"]))
+        : null,
+    landlord: json["landlord"] != null && json["landlord"] is Map
+        ? Landlord.fromJson(Map<String, dynamic>.from(json["landlord"]))
+        : null,
+    name: (json["name"] ?? 'Room').toString(),
+    status: (json["status"] ?? 'AVAILABLE NOW').toString(),
+    price: json["price"] is num
+        ? (json["price"] as num)
+        : (num.tryParse(json["price"]?.toString() ?? '0') ?? 0),
+    rating: json["rating"] is num
+        ? (json["rating"] as num).toDouble()
+        : (double.tryParse(json["rating"]?.toString() ?? '0.0') ?? 0.0),
+    reviewsCount: json["reviews_count"] is num
+        ? (json["reviews_count"] as num).toInt()
+        : (int.tryParse(json["reviews_count"]?.toString() ?? '0') ?? 0),
+    address: (json["address"] ?? '').toString(),
+    about: (json["about"] ?? json["description"] ?? '').toString(),
+    description: (json["description"] ?? '').toString(),
+    image: json["image"]?.toString(),
+    images: json["images"] is List
+        ? List<String>.from(
+            (json["images"] as List)
+                .where((x) => x != null)
+                .map((x) => x.toString()),
+          )
+        : (json["image"] != null ? [json["image"].toString()] : []),
+    imagesCount: json["images_count"] is num
+        ? (json["images_count"] as num).toInt()
+        : (int.tryParse(json["images_count"]?.toString() ?? '0') ?? 0),
+    facilities: json["facilities"] is List
+        ? List<String>.from(
+            (json["facilities"] as List)
+                .where((x) => x != null)
+                .map((x) => x.toString()),
+          )
+        : [],
+    roomInformation:
+        json["room_information"] != null && json["room_information"] is Map
+        ? RoomInformation.fromJson(
+            Map<String, dynamic>.from(json["room_information"]),
+          )
+        : RoomInformation.empty(),
+    houseRules: json["house_rules"] is List
+        ? List<String>.from(
+            (json["house_rules"] as List)
+                .where((x) => x != null)
+                .map((x) => x.toString()),
+          )
+        : [],
+    location: json["location"] != null && json["location"] is Map
+        ? Location.fromJson(Map<String, dynamic>.from(json["location"]))
+        : Location(
+            address: (json["address"] ?? '').toString(),
+            latitude: json["latitude"] is num
+                ? (json["latitude"] as num).toDouble()
+                : (double.tryParse(json["latitude"]?.toString() ?? '0.0') ??
+                      0.0),
+            longitude: json["longitude"] is num
+                ? (json["longitude"] as num).toDouble()
+                : (double.tryParse(json["longitude"]?.toString() ?? '0.0') ??
+                      0.0),
+          ),
+    isFavorite: json["is_favorite"] == true,
+    createdAt: (json["created_at"] ?? '').toString(),
+    updatedAt: (json["updated_at"] ?? '').toString(),
+  );
+
+  factory Data.empty() => Data(
+    id: 0,
+    categoryId: null,
+    category: null,
+    landlord: null,
+    name: 'Unknown',
+    status: 'Unavailable',
+    price: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    address: '',
+    about: '',
+    description: '',
+    image: null,
+    images: [],
+    imagesCount: 0,
+    facilities: [],
+    roomInformation: RoomInformation.empty(),
+    houseRules: [],
+    location: Location(address: '', latitude: 0.0, longitude: 0.0),
+    isFavorite: false,
+    createdAt: '',
+    updatedAt: '',
   );
 
   Map<String, dynamic> toJson() => {
     "id": id,
-    "category_id": categoryId,
-    "category": category.toJson(),
+    if (categoryId != null) "category_id": categoryId,
+    if (category != null) "category": category!.toJson(),
+    if (landlord != null) "landlord": landlord!.toJson(),
     "name": name,
     "status": status,
     "price": price,
@@ -117,6 +207,52 @@ class Data {
   };
 }
 
+class Landlord {
+  final int id;
+  final String name;
+  final String? email;
+  final String? phone;
+  final String? avatar;
+  final bool isVerified;
+  final String? locationTag;
+  final String? telegram;
+
+  Landlord({
+    required this.id,
+    required this.name,
+    this.email,
+    this.phone,
+    this.avatar,
+    this.isVerified = false,
+    this.locationTag,
+    this.telegram,
+  });
+
+  factory Landlord.fromJson(Map<String, dynamic> json) => Landlord(
+    id: json["id"] is num
+        ? (json["id"] as num).toInt()
+        : (int.tryParse(json["id"]?.toString() ?? '0') ?? 0),
+    name: (json["name"] ?? 'Landlord').toString(),
+    email: json["email"]?.toString(),
+    phone: json["phone"]?.toString(),
+    avatar: json["avatar"]?.toString(),
+    isVerified: json["is_verified"] == true,
+    locationTag: json["location_tag"]?.toString(),
+    telegram: json["telegram"]?.toString(),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "name": name,
+    "email": email,
+    "phone": phone,
+    "avatar": avatar,
+    "is_verified": isVerified,
+    "location_tag": locationTag,
+    "telegram": telegram,
+  };
+}
+
 class Category {
   final int id;
   final String name;
@@ -127,13 +263,15 @@ class Category {
     required this.id,
     required this.name,
     required this.slug,
-    required this.image,
+    this.image,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
-    id: json["id"],
-    name: json["name"],
-    slug: json["slug"],
+    id: json["id"] is num
+        ? (json["id"] as num).toInt()
+        : (int.tryParse(json["id"]?.toString() ?? '0') ?? 0),
+    name: (json["name"] ?? '').toString(),
+    slug: (json["slug"] ?? '').toString(),
     image: json["image"],
   );
 
@@ -157,9 +295,13 @@ class Location {
   });
 
   factory Location.fromJson(Map<String, dynamic> json) => Location(
-    address: json["address"],
-    latitude: json["latitude"]?.toDouble(),
-    longitude: json["longitude"]?.toDouble(),
+    address: (json["address"] ?? '').toString(),
+    latitude: json["latitude"] is num
+        ? (json["latitude"] as num).toDouble()
+        : (double.tryParse(json["latitude"]?.toString() ?? '0.0') ?? 0.0),
+    longitude: json["longitude"] is num
+        ? (json["longitude"] as num).toDouble()
+        : (double.tryParse(json["longitude"]?.toString() ?? '0.0') ?? 0.0),
   );
 
   Map<String, dynamic> toJson() => {
@@ -184,11 +326,18 @@ class RoomInformation {
 
   factory RoomInformation.fromJson(Map<String, dynamic> json) =>
       RoomInformation(
-        type: json["type"],
-        size: json["size"],
-        floor: json["floor"],
-        deposit: json["deposit"],
+        type: (json["type"] ?? 'Standard').toString(),
+        size: (json["size"] ?? '').toString(),
+        floor: (json["floor"] ?? '').toString(),
+        deposit: (json["deposit"] ?? '').toString(),
       );
+
+  factory RoomInformation.empty() => RoomInformation(
+    type: 'Standard',
+    size: 'N/A',
+    floor: 'N/A',
+    deposit: 'N/A',
+  );
 
   Map<String, dynamic> toJson() => {
     "type": type,

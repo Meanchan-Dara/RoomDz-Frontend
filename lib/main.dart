@@ -15,6 +15,7 @@ void main() async {
   Get.put(FavoriteController());
 
   //  SQLite for an existing session
+
   final savedUser = await DatabaseService.instance.getSavedUser();
 
   runApp(MyApp(initialHome: _resolveHome(savedUser?.role?.name)));

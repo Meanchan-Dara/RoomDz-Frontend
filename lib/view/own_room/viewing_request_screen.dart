@@ -322,7 +322,11 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
               // Requester Info
               Row(
                 children: [
-                  const Icon(Icons.person_outline, size: 16, color: Color(0xFF64748B)),
+                  const Icon(
+                    Icons.person_outline,
+                    size: 16,
+                    color: Color(0xFF64748B),
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     req.name ?? req.requester?.name ?? 'អតិថិជន',
@@ -333,7 +337,11 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
                     ),
                   ),
                   const Spacer(),
-                  const Icon(Icons.phone_outlined, size: 16, color: Color(0xFF64748B)),
+                  const Icon(
+                    Icons.phone_outlined,
+                    size: 16,
+                    color: Color(0xFF64748B),
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     req.phone ?? req.requester?.phone ?? '-',
@@ -396,7 +404,9 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: isProcessing ? null : () => _handleReject(req.id),
+                        onPressed: isProcessing
+                            ? null
+                            : () => _handleReject(req.id),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red,
                           side: const BorderSide(color: Colors.red),
@@ -416,7 +426,9 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: isProcessing ? null : () => _handleConfirm(req.id),
+                        onPressed: isProcessing
+                            ? null
+                            : () => _handleConfirm(req.id),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF16A34A),
                           foregroundColor: Colors.white,
