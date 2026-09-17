@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:roomdz_frontend/const/port.dart';
 import 'package:roomdz_frontend/model/view_quest_model.dart';
 
 class ViewingRequestService {
@@ -10,7 +11,7 @@ class ViewingRequestService {
   ViewingRequestService()
     : dio = Dio(
         BaseOptions(
-          baseUrl: 'http://10.0.2.2:8000/api',
+          baseUrl: '$port/api',
           connectTimeout: const Duration(seconds: 10),
           receiveTimeout: const Duration(seconds: 10),
           headers: {
@@ -22,7 +23,8 @@ class ViewingRequestService {
 
   // add login token to request
   Future<void> _addToken() async {
-    final token = await storage.read(key: 'token');
+    final token =
+        await storage.read(key: 'token') ?? await storage.read(key: 'auth_token');
 
     if (token == null || token.isEmpty) {
       throw Exception('No login token found. Please login again.');
