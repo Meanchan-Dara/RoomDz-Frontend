@@ -1,10 +1,27 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = "http://10.0.2.2:8000/api";
+  static const String _configuredBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+  );
+
+  String get baseUrl {
+    if (_configuredBaseUrl.isNotEmpty) {
+      return _configuredBaseUrl;
+    }
+
+    if (kIsWeb) {
+      return 'http://localhost:8000/api';
+    }
+
+    return defaultTargetPlatform == TargetPlatform.android
+        ? 'http://10.0.2.2:8000/api'
+        : 'http://localhost:8000/api';
+  }
 
   final FlutterSecureStorage storage =
       const FlutterSecureStorage();

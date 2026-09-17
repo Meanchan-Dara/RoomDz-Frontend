@@ -167,9 +167,7 @@ class _SigninscreenState extends State<Signinscreen> {
                   ),
                   elevation: .8,
                 ),
-                onPressed: () {
-                  isLoading ? null : login();
-                },
+                onPressed: isLoading ? null : login,
                 child: isLoading
                     ? CircularProgressIndicator()
                     : Text(
@@ -286,6 +284,7 @@ class _SigninscreenState extends State<Signinscreen> {
   }) {
     return TextFormField(
       obscureText: obscureText,
+      controller: ctrl,
       decoration: InputDecoration(
         hintText: text,
         hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),

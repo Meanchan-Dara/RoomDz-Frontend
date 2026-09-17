@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
-import 'package:roomdz_frontend/model/usreModel.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/view/signInScreen.dart';
 
@@ -19,38 +18,50 @@ class _RegisterscreenState extends State<Registerscreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  bool _isObscure = false;
+  bool _isObscure = true;
   bool _isAgreed = false;
 
   // backend section
   bool isloading = false;
   final AuthService authService = AuthService();
   Future<void> resgister() async {
+    if (!_isAgreed) {
+      Get.snackbar("Required", "Please agree to the Terms and Privacy Policy");
+      return;
+    }
     if (_passwordController.text != _confirmPasswordController.text) {
       Get.snackbar("Incorrect", "Passwords do not match");
       return;
     }
-    //else
+
     setState(() {
       isloading = true;
     });
 
     try {
-      UserModel? user = await authService.resgister(
-        _fullNameController.text,
-        _emailController.text,
+      final result = await authService.registerWithResult(
+        _fullNameController.text.trim(),
+        _emailController.text.trim(),
+        _phoneController.text.trim(),
         _passwordController.text,
         _confirmPasswordController.text,
       );
-      if (user != null) {
-        if (!mounted) return;
+
+      if (!mounted) return;
+
+      if (result['user'] != null) {
         Get.to(() => Signinscreen());
       } else {
-        if (!mounted) return;
-        Get.snackbar("Invalided", "Register failed");
+        final errorMsg = result['error'] ?? 'Register failed';
+        Get.snackbar(
+          "Register Failed",
+          errorMsg,
+          duration: const Duration(seconds: 4),
+        );
       }
     } catch (e) {
-      throw Exception();
+      if (!mounted) return;
+      Get.snackbar("Error", "Something went wrong: $e");
     } finally {
       if (mounted) {
         setState(() {
@@ -243,10 +254,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      isloading ? null : resgister();
-                      Get.back();
-                    },
+                    onPressed: isloading ? null : resgister,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       elevation: 0,
