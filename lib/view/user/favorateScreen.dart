@@ -222,32 +222,47 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(16),
                   ),
-                  child: CachedNetworkImage(
-                    imageUrl: room.image,
-                    width: double.infinity,
-                    height: 190,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) {
-                      return Container(
-                        height: 190,
-                        color: Colors.grey.shade200,
-                        child: const Center(child: CircularProgressIndicator()),
-                      );
-                    },
-                    errorWidget: (context, url, error) {
-                      return Container(
-                        height: 190,
-                        color: Colors.grey.shade200,
-                        child: const Center(
-                          child: Icon(
-                            Icons.image_not_supported_outlined,
-                            size: 45,
-                            color: Colors.grey,
+                  child: room.image != null && room.image!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: room.image!,
+                          width: double.infinity,
+                          height: 190,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) {
+                            return Container(
+                              height: 190,
+                              color: Colors.grey.shade200,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          },
+                          errorWidget: (context, url, error) {
+                            return Container(
+                              height: 190,
+                              color: Colors.grey.shade200,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.image_not_supported_outlined,
+                                  size: 45,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
+                          height: 190,
+                          width: double.infinity,
+                          color: Colors.grey.shade200,
+                          child: const Center(
+                            child: Icon(
+                              Icons.apartment_outlined,
+                              size: 50,
+                              color: Colors.grey,
+                            ),
                           ),
                         ),
-                      );
-                    },
-                  ),
                 ),
                 Positioned(
                   top: 12,

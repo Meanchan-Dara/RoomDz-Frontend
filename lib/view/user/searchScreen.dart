@@ -389,30 +389,37 @@ class SearchRoomCard extends StatelessWidget {
                 topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
               ),
-              child: CachedNetworkImage(
-                imageUrl: room.image,
-                width: 120,
-                height: 140,
-                fit: BoxFit.cover,
-                placeholder: (context, url) {
-                  return Container(
-                    width: 120,
-                    height: 140,
-                    color: Colors.grey.shade200,
-                    child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+              child: room.image != null && room.image!.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: room.image!,
+                      width: 120,
+                      height: 140,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) {
+                        return Container(
+                          width: 120,
+                          height: 140,
+                          color: Colors.grey.shade200,
+                          child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      },
+                      errorWidget: (context, url, error) {
+                        return Container(
+                          width: 120,
+                          height: 140,
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.image_not_supported_outlined),
+                        );
+                      },
+                    )
+                  : Container(
+                      width: 120,
+                      height: 140,
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.apartment_outlined, size: 40, color: Colors.grey),
                     ),
-                  );
-                },
-                errorWidget: (context, url, error) {
-                  return Container(
-                    width: 120,
-                    height: 140,
-                    color: Colors.grey.shade200,
-                    child: const Icon(Icons.image_not_supported_outlined),
-                  );
-                },
-              ),
             ),
 
             Expanded(

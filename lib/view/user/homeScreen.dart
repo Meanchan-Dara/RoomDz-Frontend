@@ -423,33 +423,46 @@ class RoomCard extends StatelessWidget {
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
                 ),
-                child: CachedNetworkImage(
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-
-                  //image
-                  imageUrl: room.image,
-                  placeholder: (context, url) {
-                    return Container(
-                      height: 180,
-                      color: Colors.grey.shade200,
-                      child: const Center(child: CircularProgressIndicator()),
-                    );
-                  },
-                  errorWidget: (context, url, error) {
-                    return Container(
-                      height: 180,
-                      color: Colors.grey.shade200,
-                      child: const Center(
-                        child: Icon(
-                          Icons.image_not_supported_outlined,
-                          size: 50,
+                child: room.image != null && room.image!.isNotEmpty
+                    ? CachedNetworkImage(
+                        height: 180,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        imageUrl: room.image!,
+                        placeholder: (context, url) {
+                          return Container(
+                            height: 180,
+                            color: Colors.grey.shade200,
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                        errorWidget: (context, url, error) {
+                          return Container(
+                            height: 180,
+                            color: Colors.grey.shade200,
+                            child: const Center(
+                              child: Icon(
+                                Icons.image_not_supported_outlined,
+                                size: 50,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        height: 180,
+                        width: double.infinity,
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: Icon(
+                            Icons.apartment_outlined,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
-                    );
-                  },
-                ),
               ),
 
               const SizedBox(height: 12),

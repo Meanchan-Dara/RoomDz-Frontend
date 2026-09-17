@@ -10,21 +10,36 @@ String roomModelToJson(RoomModel data) => json.encode(data.toJson());
 
 class RoomModel {
   final List<Datum> data;
-  final Links links;
-  final Meta meta;
+  final Links? links;
+  final Meta? meta;
 
-  RoomModel({required this.data, required this.links, required this.meta});
+  RoomModel({required this.data, this.links, this.meta});
 
-  factory RoomModel.fromJson(Map<String, dynamic> json) => RoomModel(
-    data: List<Datum>.from(json["data"].map((x) => Datum.fromJson(x))),
-    links: Links.fromJson(json["links"]),
-    meta: Meta.fromJson(json["meta"]),
-  );
+  factory RoomModel.fromJson(dynamic json) {
+    if (json is List) {
+      return RoomModel(
+        data: List<Datum>.from(json.map((x) => Datum.fromJson(Map<String, dynamic>.from(x)))),
+      );
+    }
+    if (json is Map<String, dynamic> || json is Map) {
+      final rawData = json["data"];
+      List<Datum> items = [];
+      if (rawData is List) {
+        items = List<Datum>.from(rawData.map((x) => Datum.fromJson(Map<String, dynamic>.from(x))));
+      }
+      return RoomModel(
+        data: items,
+        links: json["links"] != null ? Links.fromJson(Map<String, dynamic>.from(json["links"])) : null,
+        meta: json["meta"] != null ? Meta.fromJson(Map<String, dynamic>.from(json["meta"])) : null,
+      );
+    }
+    return RoomModel(data: []);
+  }
 
   Map<String, dynamic> toJson() => {
     "data": List<dynamic>.from(data.map((x) => x.toJson())),
-    "links": links.toJson(),
-    "meta": meta.toJson(),
+    if (links != null) "links": links!.toJson(),
+    if (meta != null) "meta": meta!.toJson(),
   };
 }
 
@@ -39,7 +54,7 @@ class Datum {
   final double rating;
   final int reviewsCount;
   final String address;
-  final String image;
+  final String? image;
   final double latitude;
   final double longitude;
   final String createdAt;
@@ -56,7 +71,7 @@ class Datum {
     required this.rating,
     required this.reviewsCount,
     required this.address,
-    required this.image,
+    this.image,
     required this.latitude,
     required this.longitude,
     required this.createdAt,
@@ -64,21 +79,31 @@ class Datum {
   });
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
-    id: json["id"],
-    categoryId: json["category_id"],
-    category: Category.fromJson(json["category"]),
-    name: json["name"],
-    type: json["type"],
-    price: json["price"],
-    status: json["status"],
-    rating: json["rating"]?.toDouble() ?? 0.0,
-    reviewsCount: json["reviews_count"],
-    address: json["address"],
-    image: json["image"],
-    latitude: double.parse(json["latitude"].toString()),
-    longitude: double.parse(json["longitude"].toString()),
-    createdAt: json["created_at"],
-    updatedAt: json["updated_at"],
+    id: json["id"] is int ? json["id"] : (int.tryParse(json["id"]?.toString() ?? '0') ?? 0),
+    categoryId: json["category_id"] is int
+        ? json["category_id"]
+        : (int.tryParse(json["category_id"]?.toString() ?? '0') ?? 0),
+    category: json["category"] != null && json["category"] is Map
+        ? Category.fromJson(Map<String, dynamic>.from(json["category"]))
+        : Category(id: 0, name: 'General', slug: 'general', image: null),
+    name: (json["name"] ?? 'Room').toString(),
+    type: (json["type"] ?? 'Standard').toString(),
+    price: (json["price"] is num)
+        ? (json["price"] as num).toInt()
+        : (int.tryParse(json["price"]?.toString() ?? '0') ?? 0),
+    status: (json["status"] ?? 'Available').toString(),
+    rating: (json["rating"] is num)
+        ? (json["rating"] as num).toDouble()
+        : (double.tryParse(json["rating"]?.toString() ?? '0') ?? 0.0),
+    reviewsCount: (json["reviews_count"] is num)
+        ? (json["reviews_count"] as num).toInt()
+        : (int.tryParse(json["reviews_count"]?.toString() ?? '0') ?? 0),
+    address: (json["address"] ?? '').toString(),
+    image: json["image"]?.toString(),
+    latitude: double.tryParse(json["latitude"]?.toString() ?? '0') ?? 0.0,
+    longitude: double.tryParse(json["longitude"]?.toString() ?? '0') ?? 0.0,
+    createdAt: json["created_at"]?.toString() ?? '',
+    updatedAt: json["updated_at"]?.toString() ?? '',
   );
 
   Map<String, dynamic> toJson() => {
@@ -114,9 +139,9 @@ class Category {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) => Category(
-    id: json["id"],
-    name: json["name"],
-    slug: json["slug"],
+    id: json["id"] is int ? json["id"] : (int.tryParse(json["id"]?.toString() ?? '0') ?? 0),
+    name: (json["name"] ?? '').toString(),
+    slug: (json["slug"] ?? '').toString(),
     image: json["image"],
   );
 
@@ -129,21 +154,21 @@ class Category {
 }
 
 class Links {
-  final String first;
-  final String last;
+  final String? first;
+  final String? last;
   final dynamic prev;
   final dynamic next;
 
   Links({
-    required this.first,
-    required this.last,
-    required this.prev,
-    required this.next,
+    this.first,
+    this.last,
+    this.prev,
+    this.next,
   });
 
   factory Links.fromJson(Map<String, dynamic> json) => Links(
-    first: json["first"],
-    last: json["last"],
+    first: json["first"]?.toString(),
+    last: json["last"]?.toString(),
     prev: json["prev"],
     next: json["next"],
   );
@@ -157,35 +182,37 @@ class Links {
 }
 
 class Meta {
-  final int currentPage;
-  final int from;
-  final int lastPage;
+  final int? currentPage;
+  final int? from;
+  final int? lastPage;
   final List<Link> links;
-  final String path;
-  final int perPage;
-  final int to;
-  final int total;
+  final String? path;
+  final int? perPage;
+  final int? to;
+  final int? total;
 
   Meta({
-    required this.currentPage,
-    required this.from,
-    required this.lastPage,
-    required this.links,
-    required this.path,
-    required this.perPage,
-    required this.to,
-    required this.total,
+    this.currentPage,
+    this.from,
+    this.lastPage,
+    this.links = const [],
+    this.path,
+    this.perPage,
+    this.to,
+    this.total,
   });
 
   factory Meta.fromJson(Map<String, dynamic> json) => Meta(
-    currentPage: json["current_page"],
-    from: json["from"],
-    lastPage: json["last_page"],
-    links: List<Link>.from(json["links"].map((x) => Link.fromJson(x))),
-    path: json["path"],
-    perPage: json["per_page"],
-    to: json["to"],
-    total: json["total"],
+    currentPage: (json["current_page"] as num?)?.toInt(),
+    from: (json["from"] as num?)?.toInt(),
+    lastPage: (json["last_page"] as num?)?.toInt(),
+    links: json["links"] is List
+        ? List<Link>.from(json["links"].map((x) => Link.fromJson(Map<String, dynamic>.from(x))))
+        : const [],
+    path: json["path"]?.toString(),
+    perPage: (json["per_page"] as num?)?.toInt(),
+    to: (json["to"] as num?)?.toInt(),
+    total: (json["total"] as num?)?.toInt(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -205,10 +232,13 @@ class Link {
   final String label;
   final bool active;
 
-  Link({required this.url, required this.label, required this.active});
+  Link({this.url, required this.label, required this.active});
 
-  factory Link.fromJson(Map<String, dynamic> json) =>
-      Link(url: json["url"], label: json["label"], active: json["active"]);
+  factory Link.fromJson(Map<String, dynamic> json) => Link(
+    url: json["url"]?.toString(),
+    label: (json["label"] ?? '').toString(),
+    active: json["active"] == true,
+  );
 
   Map<String, dynamic> toJson() => {
     "url": url,
