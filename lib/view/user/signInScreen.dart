@@ -5,9 +5,9 @@ import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
-import 'package:roomdz_frontend/view/homeScreen.dart';
 import 'package:roomdz_frontend/widget/parentScreen.dart';
-import 'package:roomdz_frontend/view/registerScreen.dart';
+import 'package:roomdz_frontend/widget/parent_screen_own.dart';
+import 'package:roomdz_frontend/view/user/registerScreen.dart';
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});
@@ -140,8 +140,24 @@ class _SigninscreenState extends State<Signinscreen> {
                           // Persist user + role so the app can auto-route on next launch
                           await DatabaseService.instance.saveUser(user);
                           if (!mounted) return;
+
+                          Widget targetScreen;
+                          switch (DatabaseService.normalizeRole(
+                            user.role?.name,
+                          )) {
+                            // case 'admin':
+                            //   targetScreen = ParentScreenAdmin();
+                            //   break;
+                            case 'owner':
+                              targetScreen = ParentScreenOwn();
+                              break;
+                            case 'customer':
+                            default:
+                              targetScreen = const Parentscreen();
+                          }
+
                           Get.off(
-                            () => Parentscreen(),
+                            () => targetScreen,
                           ); // Get.off, not Get.to — don't stack login on the back stack
                         } on DioException catch (e) {
                           final msg =

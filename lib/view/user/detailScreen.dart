@@ -8,6 +8,7 @@ import 'package:roomdz_frontend/controller/favorite_controller.dart';
 import 'package:roomdz_frontend/model/roomModel.dart';
 import 'package:roomdz_frontend/rooms/room_detail_model.dart';
 import 'package:roomdz_frontend/service/rooms/room_service.dart';
+import 'package:roomdz_frontend/service/viewing_request_service.dart';
 import 'package:roomdz_frontend/util/url_util.dart';
 import 'package:roomdz_frontend/widget/skeleton/detail_screen_skeleton.dart';
 
@@ -21,10 +22,12 @@ class Detailscreen extends StatefulWidget {
 }
 
 class _DetailscreenState extends State<Detailscreen> {
+  final ViewingRequestService _viewingRequestService = ViewingRequestService();
   final RoomServer _roomServer = RoomServer();
   final UrlUtil _urlUtil = UrlUtil();
   late Future<RoomDetialModel> _roomDetailFuture;
   final FavoriteController favoriteController = Get.find<FavoriteController>();
+
   @override
   void initState() {
     super.initState();
@@ -420,8 +423,6 @@ class _DetailscreenState extends State<Detailscreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Wrap(
-                                        // crossAxisAlignment:
-                                        //     WrapCrossAlignment.center,
                                         spacing: 8,
                                         runSpacing: 4,
                                         children: [
@@ -651,8 +652,324 @@ class _DetailscreenState extends State<Detailscreen> {
               ),
             ],
           ),
+
+          // --- ADDED BOTTOM SHEET / BOTTOM NAVIGATION BAR ---
+          bottomNavigationBar: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Leading: Price Info
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'តម្លៃសរុប',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            "\$${room.price}",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                              fontSize: 22,
+                            ),
+                          ),
+                          const Text(
+                            ' / មួយខែ',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  // Action: Send Request Button
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      _showSendRequestDialog(context, room.name);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    icon: const Icon(Icons.send, size: 18),
+                    label: const Text(
+                      'ផ្ញើសំណើ',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       },
+    );
+  }
+
+  /// Helper action to confirm or send request
+  void _showSendRequestDialog(BuildContext context, String roomName) {
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final emailController = TextEditingController();
+    final notesController = TextEditingController();
+
+    DateTime? selectedDate;
+    TimeOfDay? selectedTime;
+
+    Get.defaultDialog(
+      title: 'ផ្ញើសំណើមើលបន្ទប់',
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold),
+      content: StatefulBuilder(
+        builder: (context, setState) {
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  roomName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'ឈ្មោះ',
+                    prefixIcon: Icon(Icons.person_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'លេខទូរស័ព្ទ',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'Email (optional)',
+                    prefixIcon: Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // date
+                InkWell(
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+
+                    if (date != null) {
+                      setState(() {
+                        selectedDate = date;
+                      });
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today_outlined),
+                        const SizedBox(width: 10),
+                        Text(
+                          selectedDate == null
+                              ? 'ជ្រើសរើសថ្ងៃ'
+                              : '${selectedDate!.year}-'
+                                    '${selectedDate!.month.toString().padLeft(2, '0')}-'
+                                    '${selectedDate!.day.toString().padLeft(2, '0')}',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // time
+                InkWell(
+                  onTap: () async {
+                    final time = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+
+                    if (time != null) {
+                      setState(() {
+                        selectedTime = time;
+                      });
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.access_time_outlined),
+                        const SizedBox(width: 10),
+                        Text(
+                          selectedTime == null
+                              ? 'ជ្រើសរើសម៉ោង'
+                              : selectedTime!.format(context),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: notesController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'ចំណាំ',
+                    prefixIcon: Icon(Icons.notes_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (nameController.text.trim().isEmpty) {
+                        Get.snackbar('Error', 'សូមបញ្ចូលឈ្មោះ');
+                        return;
+                      }
+
+                      if (phoneController.text.trim().isEmpty) {
+                        Get.snackbar('Error', 'សូមបញ្ចូលលេខទូរស័ព្ទ');
+                        return;
+                      }
+
+                      String? preferredDate;
+
+                      if (selectedDate != null) {
+                        preferredDate =
+                            '${selectedDate!.year}-'
+                            '${selectedDate!.month.toString().padLeft(2, '0')}-'
+                            '${selectedDate!.day.toString().padLeft(2, '0')}';
+                      }
+
+                      String? preferredTime;
+
+                      if (selectedTime != null) {
+                        preferredTime =
+                            '${selectedTime!.hour.toString().padLeft(2, '0')}:'
+                            '${selectedTime!.minute.toString().padLeft(2, '0')}';
+                      }
+
+                      try {
+                        Get.back();
+
+                        Get.dialog(
+                          const Center(child: CircularProgressIndicator()),
+                          barrierDismissible: false,
+                        );
+
+                        await _viewingRequestService.requestViewing(
+                          roomId: widget.id,
+                          name: nameController.text.trim(),
+                          phone: phoneController.text.trim(),
+                          email: emailController.text.trim(),
+                          preferredDate: preferredDate,
+                          preferredTime: preferredTime,
+                          notes: notesController.text.trim(),
+                        );
+
+                        if (Get.isDialogOpen == true) {
+                          Get.back();
+                        }
+
+                        Get.snackbar(
+                          'ជោគជ័យ',
+                          'សំណើរបស់អ្នកត្រូវបានផ្ញើទៅម្ចាស់ផ្ទះរួចរាល់',
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                      } catch (e) {
+                        if (Get.isDialogOpen == true) {
+                          Get.back();
+                        }
+
+                        Get.snackbar(
+                          'Error',
+                          e.toString().replaceFirst('Exception: ', ''),
+                          snackPosition: SnackPosition.BOTTOM,
+                        );
+                      }
+                    },
+                    child: const Text('ផ្ញើសំណើ'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 

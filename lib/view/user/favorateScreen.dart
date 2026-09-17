@@ -5,7 +5,7 @@ import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/controller/favorite_controller.dart';
 import 'package:roomdz_frontend/model/roomModel.dart';
 import 'package:roomdz_frontend/service/rooms/room_service.dart';
-import 'package:roomdz_frontend/view/detailScreen.dart';
+import 'package:roomdz_frontend/view/user/detailScreen.dart';
 
 class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({super.key});
@@ -37,13 +37,13 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: false,
+        centerTitle: true,
         title: const Text(
           'Favorites',
           style: TextStyle(
-            color: Colors.black,
-            fontSize: 22,
             fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: AppColors.primary,
           ),
         ),
         actions: [

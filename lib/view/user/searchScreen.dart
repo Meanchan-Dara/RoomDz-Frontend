@@ -5,7 +5,7 @@ import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/controller/category_fillter.dart';
 import 'package:roomdz_frontend/controller/location_controller.dart';
 import 'package:roomdz_frontend/model/roomModel.dart';
-import 'package:roomdz_frontend/view/detailScreen.dart';
+import 'package:roomdz_frontend/view/user/detailScreen.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -112,7 +112,11 @@ class _SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         title: const Text(
           'Search Rooms',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: AppColors.primary,
+          ),
         ),
         centerTitle: true,
       ),

@@ -1,13 +1,16 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/controller/category_fillter.dart';
 import 'package:roomdz_frontend/controller/location_controller.dart';
+import 'package:roomdz_frontend/controller/profile_controller.dart';
 import 'package:roomdz_frontend/model/roomModel.dart';
 import 'package:roomdz_frontend/service/rooms/room_service.dart';
-import 'package:roomdz_frontend/view/detailScreen.dart';
-import 'package:roomdz_frontend/view/profile_Screen.dart';
+import 'package:roomdz_frontend/view/user/detailScreen.dart';
+import 'package:roomdz_frontend/view/user/profile_Screen.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
 import 'package:roomdz_frontend/widget/skeleton/home_screen_skeleton.dart';
 import 'package:roomdz_frontend/controller/favorite_controller.dart';
@@ -20,6 +23,8 @@ class Homescreen extends StatefulWidget {
 }
 
 class _HomescreenState extends State<Homescreen> {
+  final ProfileController _profileCtrl = Get.put(ProfileController());
+
   final RoomServer roomService = RoomServer();
 
   int selectedCategories = 0;
@@ -61,20 +66,26 @@ class _HomescreenState extends State<Homescreen> {
           ),
         ],
         leading: GestureDetector(
-          onTap: () => Get.to(() => ProfileScreen()),
+          onTap: () => Get.to(() => const ProfileScreen()),
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              backgroundColor: Colors.grey.shade200,
-              backgroundImage: const NetworkImage(
-                'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
-              ),
-            ),
+            child: Obx(() {
+              final path = _profileCtrl.localAvatarPath.value;
+
+              return CircleAvatar(
+                radius: 25,
+                backgroundImage: path != null
+                    ? FileImage(File(path))
+                    : const NetworkImage(
+                        'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+                      ),
+              );
+            }),
           ),
         ),
         centerTitle: true,
         title: Text(
-          'Dz-Room',
+          'Room-Dz',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24,

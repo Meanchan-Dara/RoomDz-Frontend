@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:roomdz_frontend/model/roomModel.dart';
 import 'package:roomdz_frontend/service/rooms/room_service.dart';
-import 'package:roomdz_frontend/view/detailScreen.dart';
+import 'package:roomdz_frontend/view/user/detailScreen.dart';
 
 class Mapscreen extends StatefulWidget {
   const Mapscreen({super.key});

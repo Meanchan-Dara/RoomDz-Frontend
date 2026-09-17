@@ -4,8 +4,9 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/controller/favorite_controller.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
-import 'package:roomdz_frontend/view/signInScreen.dart';
+import 'package:roomdz_frontend/view/user/signInScreen.dart';
 import 'package:roomdz_frontend/widget/parentScreen.dart';
+import 'package:roomdz_frontend/widget/parent_screen_own.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -22,15 +23,15 @@ void main() async {
 Widget _resolveHome(String? roleName) {
   switch (DatabaseService.normalizeRole(roleName)) {
     case 'admin':
-      return Parentscreen();
+      return Container();
     case 'owner':
-      return Parentscreen();
+      return const ParentScreenOwn();
     case 'customer':
     // user@gmail.com
     //12345678
     default:
-      if (roleName == null) return Signinscreen();
-      return Parentscreen();
+      if (roleName == null) return const Signinscreen();
+      return const Parentscreen();
   }
 }
 

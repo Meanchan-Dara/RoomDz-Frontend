@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
-import 'package:roomdz_frontend/view/signInScreen.dart';
+import 'package:roomdz_frontend/view/user/signInScreen.dart';
 
 class Registerscreen extends StatefulWidget {
   const Registerscreen({super.key});
@@ -248,6 +248,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                                 message.toString(),
                               );
                             } catch (e) {
+                              isloading = false;
                               Get.snackbar('Error', e.toString());
                             }
                           },
@@ -258,16 +259,14 @@ class _RegisterscreenState extends State<Registerscreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: isloading
-                        ? CircularProgressIndicator()
-                        : Text(
-                            'បង្កើតគណនី',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                    child: Text(
+                      'បង្កើតគណនី',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(height: 16),
@@ -357,6 +356,7 @@ class _RegisterscreenState extends State<Registerscreen> {
     );
   }
 }
+
 /*
 admin123
 admin123@gmail.com

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
-import 'package:roomdz_frontend/view/favorateScreen.dart';
-import 'package:roomdz_frontend/view/homeScreen.dart';
-import 'package:roomdz_frontend/view/mapScreen.dart';
-import 'package:roomdz_frontend/view/profile_Screen.dart';
-import 'package:roomdz_frontend/view/searchScreen.dart';
+import 'package:roomdz_frontend/view/user/favorateScreen.dart';
+import 'package:roomdz_frontend/view/user/homeScreen.dart';
+import 'package:roomdz_frontend/view/user/mapScreen.dart';
+import 'package:roomdz_frontend/view/user/profile_Screen.dart';
+import 'package:roomdz_frontend/view/user/searchScreen.dart';
 
 class Parentscreen extends StatelessWidget {
   const Parentscreen({super.key});
