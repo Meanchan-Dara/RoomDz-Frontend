@@ -9,6 +9,7 @@ import 'package:roomdz_frontend/rooms/room_detail_model.dart';
 import 'package:roomdz_frontend/service/rooms/room_service.dart';
 import 'package:roomdz_frontend/service/viewing_request_service.dart';
 import 'package:roomdz_frontend/util/url_util.dart';
+import 'package:roomdz_frontend/widget/role_badge.dart';
 import 'package:roomdz_frontend/widget/skeleton/detail_screen_skeleton.dart';
 
 class Detailscreen extends StatefulWidget {
@@ -465,23 +466,9 @@ class _DetailscreenState extends State<Detailscreen> {
                                               color: Color(0xFF0F172A),
                                             ),
                                           ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFF1F5F9),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: const Text(
-                                              'Landlord',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Color(0xFF64748B),
-                                              ),
-                                            ),
+                                          const RoleBadge(
+                                            role: 'owner',
+                                            isCompact: true,
                                           ),
                                         ],
                                       ),

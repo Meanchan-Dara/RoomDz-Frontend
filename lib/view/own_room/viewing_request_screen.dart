@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/view_quest_model.dart';
 import 'package:roomdz_frontend/service/viewing_request_service.dart';
+import 'package:roomdz_frontend/widget/role_badge.dart';
 
 class ViewingRequestScreen extends StatefulWidget {
   const ViewingRequestScreen({super.key});
@@ -336,6 +337,8 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
                       color: const Color(0xFF334155),
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  const RoleBadge(role: 'customer', isCompact: true),
                   const Spacer(),
                   const Icon(
                     Icons.phone_outlined,

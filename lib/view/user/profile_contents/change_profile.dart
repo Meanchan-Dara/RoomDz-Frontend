@@ -9,6 +9,7 @@ import 'package:roomdz_frontend/controller/profile_controller.dart';
 import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
+import 'package:roomdz_frontend/widget/role_badge.dart';
 
 class ChangeProfile extends StatefulWidget {
   const ChangeProfile({super.key});
@@ -324,24 +325,7 @@ class _ChangeProfileState extends State<ChangeProfile> {
 
                   // Role Badge
                   if (_user?.role?.name != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        _user!.role!.name.toUpperCase(),
-                        style: GoogleFonts.battambang(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
+                    RoleBadge(role: _user!.role!.name, fontSize: 13),
 
                   const SizedBox(height: 28),
 

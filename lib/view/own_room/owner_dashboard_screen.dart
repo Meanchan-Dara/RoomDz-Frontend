@@ -4,6 +4,7 @@ import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/view_quest_model.dart';
 import 'package:roomdz_frontend/service/viewing_request_service.dart';
 import 'package:roomdz_frontend/widget/build_stats_grid.dart';
+import 'package:roomdz_frontend/widget/role_badge.dart';
 
 class OwnerDashboardScreen extends StatefulWidget {
   const OwnerDashboardScreen({super.key});
@@ -514,16 +515,23 @@ class ViewingRequestsSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
-                    Text(
-                      requesterName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.neutral,
-                      ),
-
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            requesterName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.neutral,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const RoleBadge(role: 'customer', isCompact: true),
+                      ],
                     ),
 
                     const SizedBox(height: 3),

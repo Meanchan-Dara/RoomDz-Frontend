@@ -11,6 +11,7 @@ import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/view/user/profile_contents/change_profile.dart';
 import 'package:roomdz_frontend/view/user/signInScreen.dart';
+import 'package:roomdz_frontend/widget/role_badge.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -152,14 +153,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: 12),
 
-                  // user name
-                  Text(
-                    currentUser?.name ?? 'User Name',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                  // user name + role badge
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    alignment: WrapAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Text(
+                        currentUser?.name ?? 'User Name',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      if (currentUser?.role?.name != null &&
+                          currentUser!.role!.name.trim().isNotEmpty)
+                        RoleBadge(role: currentUser!.role!.name),
+                    ],
                   ),
 
                   const SizedBox(height: 4),
