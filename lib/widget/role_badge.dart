@@ -81,11 +81,7 @@ class RoleBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: effectiveFontSize + 2,
-            color: textColor,
-          ),
+          Icon(icon, size: effectiveFontSize + 2, color: textColor),
           const SizedBox(width: 4),
           Text(
             label,

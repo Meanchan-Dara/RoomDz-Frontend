@@ -33,9 +33,12 @@ class Parentscreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           PersistentTabView(
+            backgroundColor: Colors.transparent,
+            navBarOverlap: const NavBarOverlap.full(),
             tabs: [
               PersistentTabConfig(
                 screen: Homescreen(),
@@ -72,6 +75,7 @@ class Parentscreen extends StatelessWidget {
                   inactiveIcon: const Icon(
                     Icons.location_on_outlined,
                     size: 25,
+                    color: Colors.white,
                   ),
                   activeForegroundColor: AppColors.primary,
                   inactiveForegroundColor: Colors.grey,
@@ -101,12 +105,12 @@ class Parentscreen extends StatelessWidget {
             navBarBuilder: (navBarConfig) => Style13BottomNavBar(
               navBarConfig: navBarConfig,
               navBarDecoration: NavBarDecoration(
-                color: AppColors.background,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 12,
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 10,
                     offset: const Offset(0, -2),
                   ),
                 ],
@@ -116,17 +120,17 @@ class Parentscreen extends StatelessWidget {
           // Floating AI Chatbot Icon above bottom navigation bar
           Positioned(
             right: 16,
-            bottom: 88,
+            bottom: 96,
             child: Material(
-              elevation: 8,
+              elevation: 0,
               shape: const CircleBorder(),
               color: Colors.transparent,
               child: InkWell(
                 onTap: () => _openChatbot(context),
                 customBorder: const CircleBorder(),
                 child: Container(
-                  width: 54,
-                  height: 54,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [AppColors.primary, Color(0xFF1D4ED8)],
@@ -136,9 +140,15 @@ class Parentscreen extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.35),
-                        blurRadius: 12,
+                        color: AppColors.primary.withValues(alpha: 0.22),
+                        blurRadius: 10,
+                        spreadRadius: 0,
                         offset: const Offset(0, 4),
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),

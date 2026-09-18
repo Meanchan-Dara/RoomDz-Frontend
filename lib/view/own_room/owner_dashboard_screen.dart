@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/view_quest_model.dart';
+import 'package:roomdz_frontend/service/rooms/owner_room_service.dart';
 import 'package:roomdz_frontend/service/viewing_request_service.dart';
+import 'package:roomdz_frontend/view/own_room/post_room_screen.dart';
 import 'package:roomdz_frontend/widget/build_stats_grid.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
 
@@ -15,16 +18,39 @@ class OwnerDashboardScreen extends StatefulWidget {
 
 class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
   final ViewingRequestService _viewingRequestService = ViewingRequestService();
+  final OwnerRoomService _roomService = OwnerRoomService();
 
   List<ViewingRequestModel> viewingRequests = [];
 
   bool isLoading = false;
   int? processingRequestId;
 
+  int _totalRooms = 0;
+  int _availableRooms = 0;
+  int _rentedRooms = 0;
+
   @override
   void initState() {
     super.initState();
-    _loadViewingRequests();
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    await Future.wait([_loadViewingRequests(), _loadStats()]);
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final data = await _roomService.getDashboardStats();
+      if (data != null && data['stats'] is Map && mounted) {
+        final stats = data['stats'] as Map;
+        setState(() {
+          _totalRooms = (stats['total_rooms'] as num?)?.toInt() ?? 0;
+          _availableRooms = (stats['available_rooms'] as num?)?.toInt() ?? 0;
+          _rentedRooms = (stats['occupied_rooms'] as num?)?.toInt() ?? 0;
+        });
+      }
+    } catch (_) {}
   }
 
   // get viewing requests from laravel
@@ -54,7 +80,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       Get.snackbar(
         'Error',
         e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }
@@ -75,7 +101,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       Get.snackbar(
         'ជោគជ័យ',
         'បានយល់ព្រមសំណើណាត់ជួប',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
 
       await _loadViewingRequests();
@@ -85,7 +111,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       Get.snackbar(
         'Error',
         e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       if (mounted) {
@@ -112,7 +138,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       Get.snackbar(
         'ជោគជ័យ',
         'បានបដិសេធសំណើណាត់ជួប',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
 
       await _loadViewingRequests();
@@ -122,7 +148,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       Get.snackbar(
         'Error',
         e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       if (mounted) {
@@ -285,7 +311,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       ),
 
       body: RefreshIndicator(
-        onRefresh: _loadViewingRequests,
+        onRefresh: _loadDashboardData,
 
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -294,10 +320,93 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               BuildStatsGrid(
-                totalRooms: 8,
-                availableRooms: 5,
-                rentedRooms: 3,
+                totalRooms: _totalRooms,
+                availableRooms: _availableRooms,
+                rentedRooms: _rentedRooms,
                 pendingVisits: pendingVisits,
+              ),
+
+              // Quick action: Post Room Banner
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () async {
+                    final created = await Get.to(() => const PostRoomScreen());
+                    if (created == true) {
+                      _loadDashboardData();
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary,
+                          AppColors.primary.withValues(alpha: 0.85),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.25),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add_home_work_rounded,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'បង្ហោះបន្ទប់ជួលថ្មី',
+                                style: GoogleFonts.battambang(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'ដាក់បន្ទប់ជួលរបស់អ្នកឱ្យអតិថិជនមើលឃើញភ្លាមៗ',
+                                style: GoogleFonts.battambang(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
 
               if (isLoading)
@@ -313,6 +422,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                   onAccept: _acceptRequest,
                   onDecline: _declineRequest,
                 ),
+              const SizedBox(height: 100),
             ],
           ),
         ),

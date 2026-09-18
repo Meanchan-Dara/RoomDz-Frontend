@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:roomdz_frontend/model/user_model.dart';
-import 'package:roomdz_frontend/service/api_service.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'api_client.dart';
 
@@ -21,9 +20,13 @@ class AuthService {
       debugPrint('LOGIN STATUS: ${res.statusCode}');
       debugPrint('LOGIN RESPONSE: ${res.data}');
 
-      final token = res.data['token']?.toString() ?? '';
-      await ApiClient.saveToken(token);
-      await ApiService().saveToken(token);
+      final token =
+          res.data['token']?.toString() ??
+          res.data['access_token']?.toString() ??
+          '';
+      if (token.isNotEmpty) {
+        await ApiClient.saveToken(token);
+      }
 
       return UserModel.fromJson(res.data['user']);
     } on DioException catch (e) {
@@ -44,18 +47,22 @@ class AuthService {
     final res = await _dio.post(
       '/register',
       data: {
-        'name': name,
-        'email': email,
+        'name': name.trim(),
+        'email': email.trim(),
         'password': password,
         'password_confirmation': password,
         'role': role,
-        if (phone != null) 'phone': phone,
+        if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
       },
     );
 
-    final token = res.data['token']?.toString() ?? '';
-    await ApiClient.saveToken(token);
-    await ApiService().saveToken(token);
+    final token =
+        res.data['token']?.toString() ??
+        res.data['access_token']?.toString() ??
+        '';
+    if (token.isNotEmpty) {
+      await ApiClient.saveToken(token);
+    }
 
     return UserModel.fromJson(res.data['user']);
   }
@@ -68,6 +75,23 @@ class AuthService {
         final user = UserModel.fromJson(data['user'] ?? data);
         await DatabaseService.instance.saveUser(user);
         return user;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> getProfileWithStats() async {
+    try {
+      final res = await _dio.get('/profile');
+      if (res.statusCode == 200) {
+        final data = res.data;
+        if (data is Map<String, dynamic>) {
+          if (data['user'] != null) {
+            final user = UserModel.fromJson(data['user']);
+            await DatabaseService.instance.saveUser(user);
+          }
+          return data;
+        }
       }
     } catch (_) {}
     return null;
@@ -129,12 +153,19 @@ class AuthService {
     }
   }
 
+  /// Refresh the current JWT token using the refresh route.
+  Future<String?> refreshToken() async {
+    return await ApiClient.refreshToken();
+  }
+
   Future<void> logout() async {
     try {
       await _dio.post('/logout');
+    } catch (e) {
+      debugPrint('Logout request error: $e');
     } finally {
       await ApiClient.clearToken();
-      await ApiService().removeToken();
+      await DatabaseService.instance.clearUser();
     }
   }
 }

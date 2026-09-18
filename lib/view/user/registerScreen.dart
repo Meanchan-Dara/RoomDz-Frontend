@@ -223,7 +223,11 @@ class _RegisterscreenState extends State<Registerscreen> {
                         : () async {
                             if (_passwordController.text !=
                                 _confirmPasswordController.text) {
-                              Get.snackbar('Error', 'Passwords do not match');
+                              Get.snackbar(
+                                'Error',
+                                'Passwords do not match',
+                                snackPosition: SnackPosition.TOP,
+                              );
                               return;
                             }
 
@@ -231,6 +235,7 @@ class _RegisterscreenState extends State<Registerscreen> {
                               Get.snackbar(
                                 'Error',
                                 'Please agree to the terms',
+                                snackPosition: SnackPosition.TOP,
                               );
                               return;
                             }
@@ -247,7 +252,11 @@ class _RegisterscreenState extends State<Registerscreen> {
                                 phone: _phoneController.text.trim(),
                               );
 
-                              Get.snackbar('Success', 'Register successful');
+                              Get.snackbar(
+                                'Success',
+                                'Register successful',
+                                snackPosition: SnackPosition.TOP,
+                              );
                               Get.off(() => const Signinscreen());
                             } on DioException catch (e) {
                               final message =
@@ -256,9 +265,14 @@ class _RegisterscreenState extends State<Registerscreen> {
                               Get.snackbar(
                                 'Register Failed',
                                 message.toString(),
+                                snackPosition: SnackPosition.TOP,
                               );
                             } catch (e) {
-                              Get.snackbar('Error', e.toString());
+                              Get.snackbar(
+                                'Error',
+                                e.toString(),
+                                snackPosition: SnackPosition.TOP,
+                              );
                             } finally {
                               if (mounted) {
                                 setState(() {

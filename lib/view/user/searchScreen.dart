@@ -300,7 +300,12 @@ class _SearchScreenState extends State<SearchScreen> {
       }
 
       return ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 4,
+          bottom: 100,
+        ),
         itemCount: rooms.length,
         itemBuilder: (context, index) {
           return SearchRoomCard(room: rooms[index]);

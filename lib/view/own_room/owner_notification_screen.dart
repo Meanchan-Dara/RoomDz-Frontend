@@ -154,7 +154,7 @@ class _OwnerNotificationScreenState extends State<OwnerNotificationScreen> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: _notifications.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final req = _notifications[index];
         final customerName = req.name ?? req.requester?.name ?? 'អតិថិជន';

@@ -16,6 +16,8 @@ class ParentScreenOwn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PersistentTabView(
+      backgroundColor: Colors.transparent,
+      navBarOverlap: const NavBarOverlap.full(),
       tabs: [
         // dashboard
         PersistentTabConfig(
@@ -49,7 +51,7 @@ class ParentScreenOwn extends StatelessWidget {
           ),
         ),
 
-        // viewing requests
+        // post room
         PersistentTabConfig(
           screen: ViewingRequestScreen(),
           item: ItemConfig(
@@ -57,15 +59,19 @@ class ParentScreenOwn extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
-            icon: const Icon(Icons.calendar_month),
-            title: 'សំណើមើលបន្ទប់',
-            inactiveIcon: const Icon(Icons.calendar_month_outlined),
+            icon: const Icon(Icons.location_on, size: 25, color: Colors.white),
+            title: 'សំណើណាត់ជួប',
+            inactiveIcon: const Icon(
+              Icons.location_on_outlined,
+              size: 25,
+              color: Colors.white,
+            ),
             activeForegroundColor: AppColors.primary,
             inactiveForegroundColor: Colors.grey,
           ),
         ),
 
-        // notifications
+        // booking
         PersistentTabConfig(
           screen: OwnerNotificationScreen(),
           item: ItemConfig(
@@ -101,12 +107,12 @@ class ParentScreenOwn extends StatelessWidget {
       navBarBuilder: (navBarConfig) => Style13BottomNavBar(
         navBarConfig: navBarConfig,
         navBarDecoration: NavBarDecoration(
-          color: AppColors.background,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 12,
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 10,
               offset: const Offset(0, -2),
             ),
           ],

@@ -54,10 +54,18 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
     setState(() => _actionId = id);
     try {
       await _service.confirmViewingRequest(id);
-      Get.snackbar('ជោគជ័យ', 'បានយល់ព្រមសំណើររួចរាល់');
+      Get.snackbar(
+        'ជោគជ័យ',
+        'បានយល់ព្រមសំណើររួចរាល់',
+        snackPosition: SnackPosition.TOP,
+      );
       await _fetchRequests();
     } catch (e) {
-      Get.snackbar('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
+      Get.snackbar(
+        'បរាជ័យ',
+        e.toString().replaceFirst('Exception: ', ''),
+        snackPosition: SnackPosition.TOP,
+      );
     } finally {
       if (mounted) setState(() => _actionId = null);
     }
@@ -67,10 +75,18 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
     setState(() => _actionId = id);
     try {
       await _service.rejectViewingRequest(id);
-      Get.snackbar('ជោគជ័យ', 'បានបដិសេធសំណើររួចរាល់');
+      Get.snackbar(
+        'ជោគជ័យ',
+        'បានបដិសេធសំណើររួចរាល់',
+        snackPosition: SnackPosition.TOP,
+      );
       await _fetchRequests();
     } catch (e) {
-      Get.snackbar('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
+      Get.snackbar(
+        'បរាជ័យ',
+        e.toString().replaceFirst('Exception: ', ''),
+        snackPosition: SnackPosition.TOP,
+      );
     } finally {
       if (mounted) setState(() => _actionId = null);
     }
@@ -242,7 +258,7 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: requests.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final req = requests[index];
         final isProcessing = _actionId == req.id;

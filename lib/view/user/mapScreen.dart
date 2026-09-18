@@ -51,7 +51,7 @@ class _MapscreenState extends State<Mapscreen> {
         Get.snackbar(
           'Error',
           'Failed to load rooms on map',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
       }
     }

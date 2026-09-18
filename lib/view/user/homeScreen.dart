@@ -115,6 +115,8 @@ class _HomescreenState extends State<Homescreen> {
                 const SizedBox(height: 12),
 
                 _buildBody(),
+
+                const SizedBox(height: 100),
               ],
             ),
           ),

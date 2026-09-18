@@ -264,7 +264,7 @@ class _RoomResults extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: rooms.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final room = rooms[index];
           return _RoomCard(room: room);
@@ -309,7 +309,7 @@ class _RoomCard extends StatelessWidget {
                   : CachedNetworkImage(
                       imageUrl: room.image!,
                       fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) =>
+                      errorWidget: (_, _, _) =>
                           const Icon(Icons.apartment_outlined, size: 36),
                     ),
             ),
@@ -369,7 +369,7 @@ class _SuggestionBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         itemCount: suggestions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final suggestion = suggestions[index];
           return ActionChip(

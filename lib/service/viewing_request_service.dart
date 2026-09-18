@@ -1,37 +1,18 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:roomdz_frontend/const/port.dart';
 import 'package:roomdz_frontend/model/view_quest_model.dart';
+import 'package:roomdz_frontend/service/api_client.dart';
 
 class ViewingRequestService {
   final Dio dio;
 
-  final FlutterSecureStorage storage = const FlutterSecureStorage();
+  ViewingRequestService({Dio? dio}) : dio = dio ?? ApiClient.instance;
 
-  ViewingRequestService()
-    : dio = Dio(
-        BaseOptions(
-          baseUrl: '$port/api',
-          connectTimeout: const Duration(seconds: 10),
-          receiveTimeout: const Duration(seconds: 10),
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-        ),
-      );
-
-  // add login token to request
+  // check login token before request
   Future<void> _addToken() async {
-    final token =
-        await storage.read(key: 'token') ??
-        await storage.read(key: 'auth_token');
-
-    if (token == null || token.isEmpty) {
+    final hasToken = await ApiClient.hasToken();
+    if (!hasToken) {
       throw Exception('No login token found. Please login again.');
     }
-
-    dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
   // customer sends viewing request
@@ -71,6 +52,59 @@ class ViewingRequestService {
     }
   }
 
+  // customer gets all their own viewing requests
+  Future<List<ViewingRequestModel>> getMyViewingRequests({
+    String? status,
+  }) async {
+    try {
+      await _addToken();
+
+      final response = await dio.get(
+        '/my-viewing-requests',
+        queryParameters: {
+          if (status != null && status.isNotEmpty) 'status': status,
+        },
+      );
+
+      final responseData = response.data;
+      if (responseData is! Map<String, dynamic>) {
+        return [];
+      }
+
+      final data = responseData['data'];
+      if (data is! List) {
+        return [];
+      }
+
+      return data
+          .map(
+            (item) =>
+                ViewingRequestModel.fromJson(Map<String, dynamic>.from(item)),
+          )
+          .toList();
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Please login again.');
+      }
+
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to load your viewing requests',
+      );
+    }
+  }
+
+  // customer cancels their viewing request
+  Future<void> cancelViewingRequest(int id) async {
+    try {
+      await _addToken();
+      await dio.put('/my-viewing-requests/$id/cancel');
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data?['message'] ?? 'Failed to cancel viewing request',
+      );
+    }
+  }
+
   // owner gets all viewing requests
   Future<List<ViewingRequestModel>> getViewingRequests({
     String? status,
@@ -82,7 +116,7 @@ class ViewingRequestService {
       final response = await dio.get(
         '/owner/viewing-requests',
         queryParameters: {
-          if (status != null) 'status': status,
+          if (status != null && status.isNotEmpty) 'status': status,
           if (roomId != null) 'room_id': roomId,
         },
       );

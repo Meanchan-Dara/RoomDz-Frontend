@@ -159,7 +159,11 @@ class _SigninscreenState extends State<Signinscreen> {
                         } on DioException catch (e) {
                           final msg =
                               e.response?.data?['message'] ?? 'Login failed';
-                          Get.snackbar('Error', msg);
+                          Get.snackbar(
+                            'Error',
+                            msg,
+                            snackPosition: SnackPosition.TOP,
+                          );
                         } finally {
                           if (mounted) setState(() => isLoading = false);
                         }

@@ -98,7 +98,7 @@ class LocationController extends GetxController {
         Get.snackbar(
           'Location disabled',
           'Please turn on location service on your device.',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
 
         return;
@@ -114,7 +114,7 @@ class LocationController extends GetxController {
         Get.snackbar(
           'Permission denied',
           'Location permission was denied.',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
 
         return;
@@ -124,7 +124,7 @@ class LocationController extends GetxController {
         Get.snackbar(
           'Permission denied',
           'Please enable location permission from settings.',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
 
         await Geolocator.openAppSettings();
@@ -147,7 +147,7 @@ class LocationController extends GetxController {
         Get.snackbar(
           'Location not found',
           'Could not find your location.',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
 
         return;
@@ -177,7 +177,7 @@ class LocationController extends GetxController {
         Get.snackbar(
           'Location not found',
           'Could not convert GPS location to an address.',
-          snackPosition: SnackPosition.BOTTOM,
+          snackPosition: SnackPosition.TOP,
         );
 
         return;
@@ -198,7 +198,7 @@ class LocationController extends GetxController {
       Get.snackbar(
         'Location error',
         'Unable to get your current location.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       isGettingCurrentLocation.value = false;

@@ -105,7 +105,11 @@ class _ChangeProfileState extends State<ChangeProfile> {
         });
       }
     } catch (e) {
-      Get.snackbar('Error', 'មិនអាចជ្រើសរើសរូបភាពបានទេ');
+      Get.snackbar(
+        'Error',
+        'មិនអាចជ្រើសរើសរូបភាពបានទេ',
+        snackPosition: SnackPosition.TOP,
+      );
     }
   }
 
@@ -184,12 +188,16 @@ class _ChangeProfileState extends State<ChangeProfile> {
     final bakongMerchant = _bakongMerchantCtrl.text.trim();
 
     if (name.isEmpty) {
-      Get.snackbar('កំហុស', 'សូមបញ្ចូលឈ្មោះ');
+      Get.snackbar('កំហុស', 'សូមបញ្ចូលឈ្មោះ', snackPosition: SnackPosition.TOP);
       return;
     }
 
     if (email.isEmpty) {
-      Get.snackbar('កំហុស', 'សូមបញ្ចូលអ៊ីមែល');
+      Get.snackbar(
+        'កំហុស',
+        'សូមបញ្ចូលអ៊ីមែល',
+        snackPosition: SnackPosition.TOP,
+      );
       return;
     }
 
@@ -233,7 +241,7 @@ class _ChangeProfileState extends State<ChangeProfile> {
       Get.snackbar(
         'បរាជ័យ',
         e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -406,7 +414,9 @@ class _ChangeProfileState extends State<ChangeProfile> {
                   ),
 
                   // Bakong KHQR Configuration for Owner
-                  if (_user?.isOwner == true) ...[
+                  if (_user?.isOwner == true ||
+                      (_user?.bakongAccountId != null &&
+                          _user!.bakongAccountId!.isNotEmpty)) ...[
                     const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.all(20),

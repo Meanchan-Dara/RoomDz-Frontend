@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:roomdz_frontend/const/port.dart';
+import 'package:roomdz_frontend/service/api_client.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -15,48 +16,25 @@ class ApiService {
 
   String get baseUrl => '$port/api';
 
-  late final Dio dio = Dio(
-    BaseOptions(
-      baseUrl: '$port/api',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    ),
-  );
+  Dio get dio => ApiClient.instance;
 
   Future<void> initialize() async {
-    final token =
-        await storage.read(key: 'token') ??
-        await storage.read(key: 'auth_token');
-
-    if (token != null) {
-      dio.options.headers['Authorization'] = 'Bearer $token';
-    }
+    // ApiClient.instance handles authorization dynamically via QueuedInterceptorsWrapper
   }
 
   Future<void> saveToken(String token) async {
-    await storage.write(key: 'token', value: token);
-    await storage.write(key: 'auth_token', value: token);
-
-    dio.options.headers['Authorization'] = 'Bearer $token';
+    await ApiClient.saveToken(token);
   }
 
   Future<void> removeToken() async {
-    await storage.delete(key: 'token');
-    await storage.delete(key: 'auth_token');
-
-    dio.options.headers.remove('Authorization');
+    await ApiClient.clearToken();
   }
 
   Future<void> clearToken() async {
-    await removeToken();
+    await ApiClient.clearToken();
   }
 
   Future<Response> get(String endpoint, {bool requiresAuth = false}) async {
-    if (requiresAuth) {
-      await initialize();
-    }
     return await dio.get(endpoint);
   }
 
@@ -65,9 +43,6 @@ class ApiService {
     dynamic body,
     bool requiresAuth = false,
   }) async {
-    if (requiresAuth) {
-      await initialize();
-    }
     return await dio.post(endpoint, data: body);
   }
 
@@ -76,16 +51,10 @@ class ApiService {
     dynamic body,
     bool requiresAuth = false,
   }) async {
-    if (requiresAuth) {
-      await initialize();
-    }
     return await dio.put(endpoint, data: body);
   }
 
   Future<Response> delete(String endpoint, {bool requiresAuth = false}) async {
-    if (requiresAuth) {
-      await initialize();
-    }
     return await dio.delete(endpoint);
   }
 }

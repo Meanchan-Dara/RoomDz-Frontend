@@ -108,7 +108,7 @@ class ProfileController extends GetxController {
       Get.snackbar(
         'Error',
         'មិនអាចជ្រើសរើសរូបភាពបានទេ',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
       );
     }
   }

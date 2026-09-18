@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/controller/favorite_controller.dart';
+import 'package:roomdz_frontend/service/api_client.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/view/user/signInScreen.dart';
 import 'package:roomdz_frontend/widget/parentScreen.dart';
@@ -14,11 +15,15 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Get.put(FavoriteController());
 
-  //  SQLite for an existing session
-
+  // Check both SQLite session and JWT token in secure storage
   final savedUser = await DatabaseService.instance.getSavedUser();
+  final hasToken = await ApiClient.hasToken();
 
-  runApp(MyApp(initialHome: _resolveHome(savedUser?.role?.name)));
+  final Widget initialHome = (savedUser != null && hasToken)
+      ? _resolveHome(savedUser.role?.name)
+      : const Signinscreen();
+
+  runApp(MyApp(initialHome: initialHome));
 }
 
 Widget _resolveHome(String? roleName) {
@@ -28,8 +33,7 @@ Widget _resolveHome(String? roleName) {
     case 'owner':
       return const ParentScreenOwn();
     case 'customer':
-    // user@gmail.com
-    //12345678
+      return const Parentscreen();
     default:
       if (roleName == null) return const Signinscreen();
       return const Parentscreen();
