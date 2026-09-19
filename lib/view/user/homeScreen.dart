@@ -159,7 +159,7 @@ class _HomescreenState extends State<Homescreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Current location',
+                    'ទីតាំងបច្ចុប្បន្ន',
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
 
@@ -189,7 +189,7 @@ class _HomescreenState extends State<Homescreen> {
                       locationController.showLocationBottomSheet(context);
                     },
                     icon: Icon(Icons.my_location, color: AppColors.primary),
-                    tooltip: 'Choose location',
+                    tooltip: 'ជ្រើសរើសទីតាំង',
                   ),
           ],
         ),
@@ -218,7 +218,7 @@ class _HomescreenState extends State<Homescreen> {
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 60),
             child: Text(
-              'No rooms available',
+              'មិនមានបន្ទប់ជួលទេ',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -396,7 +396,7 @@ class RoomCard extends StatelessWidget {
                     ),
 
                     Text(
-                      ' /month',
+                      ' /ខែ',
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 13,
@@ -475,7 +475,7 @@ class RoomCard extends StatelessWidget {
                       minimumSize: const Size(double.infinity, 42),
                     ),
                     child: const Text(
-                      'View Details',
+                      'មើលព័ត៌មានលម្អិត',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,

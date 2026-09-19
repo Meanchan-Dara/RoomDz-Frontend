@@ -111,7 +111,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Search Rooms',
+          'ស្វែងរកបន្ទប់',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24,
@@ -147,7 +147,7 @@ class _SearchScreenState extends State<SearchScreen> {
       child: TextField(
         controller: searchController,
         decoration: InputDecoration(
-          hintText: 'Search room, location...',
+          hintText: 'ស្វែងរកបន្ទប់, ទីតាំង...',
           prefixIcon: const Icon(Icons.search),
           suffixIcon: searchController.text.isNotEmpty
               ? IconButton(
@@ -327,14 +327,14 @@ class _SearchScreenState extends State<SearchScreen> {
             const SizedBox(height: 16),
 
             const Text(
-              'No rooms found',
+              'រកមិនឃើញបន្ទប់ជួល',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 8),
 
             Text(
-              'Try another room name or location.',
+              'សូមសាកល្បងឈ្មោះបន្ទប់ ឬទីតាំងផ្សេងទៀត',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.shade600),
             ),
@@ -343,7 +343,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
             OutlinedButton(
               onPressed: _clearSearch,
-              child: const Text('Clear Search'),
+              child: const Text('សម្អាតការស្វែងរក'),
             ),
           ],
         ),
@@ -480,7 +480,7 @@ class SearchRoomCard extends StatelessWidget {
                         const Spacer(),
 
                         Text(
-                          '\$${room.price}/month',
+                          '\$${room.price}/ខែ',
                           style: TextStyle(
                             color: AppColors.primary,
                             fontSize: 16,

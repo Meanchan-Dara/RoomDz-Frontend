@@ -277,7 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           runSpacing: 4,
                           children: [
                             Text(
-                              currentUser?.name ?? 'User Name',
+                              currentUser?.name ?? 'ឈ្មោះអ្នកប្រើ',
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,

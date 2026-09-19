@@ -16,7 +16,7 @@ class LocationController extends GetxController {
 
   final RxBool isGettingCurrentLocation = false.obs;
 
-  final RxString currentLocation = 'Choose your location'.obs;
+  final RxString currentLocation = 'ជ្រើសរើសទីតាំងរបស់អ្នក'.obs;
 
   final RxList<String> locationSuggestions = <String>[].obs;
 
@@ -83,7 +83,7 @@ class LocationController extends GetxController {
 
     isLocationSearching.value = false;
 
-    currentLocation.value = 'Choose your location';
+    currentLocation.value = 'ជ្រើសរើសទីតាំងរបស់អ្នក';
 
     categoryFilter.clearLocation();
   }
@@ -186,7 +186,7 @@ class LocationController extends GetxController {
 
       isLocationSearching.value = false;
     } catch (e) {
-      print('error getting current location: $e');
+      debugPrint('error getting current location: $e');
 
       AppAlert.error(
         'បញ្ហាទីតាំង',
@@ -229,7 +229,7 @@ class LocationController extends GetxController {
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Choose your location',
+                  'ជ្រើសរើសទីតាំង',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -239,7 +239,7 @@ class LocationController extends GetxController {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Choose an area to find rooms',
+                  'ជ្រើសរើសតំបន់ដើម្បីស្វែងរកបន្ទប់ជួល',
                   style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
                 ),
               ),
@@ -259,10 +259,12 @@ class LocationController extends GetxController {
                   child: const Icon(Icons.my_location, color: Colors.blue),
                 ),
                 title: const Text(
-                  'Use my current location',
+                  'ប្រើទីតាំងបច្ចុប្បន្នរបស់ខ្ញុំ',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: const Text('Use GPS to find your location'),
+                subtitle: const Text(
+                  'ប្រើប្រព័ន្ធ GPS ដើម្បីស្វែងរកទីតាំងរបស់អ្នក',
+                ),
                 onTap: () {
                   Get.back();
                   getCurrentLocation();
@@ -322,7 +324,7 @@ class LocationController extends GetxController {
 
     isLocationSearching.value = false;
 
-    currentLocation.value = 'Choose your location';
+    currentLocation.value = 'ជ្រើសរើសទីតាំងរបស់អ្នក';
 
     categoryFilter.clearLocation();
   }

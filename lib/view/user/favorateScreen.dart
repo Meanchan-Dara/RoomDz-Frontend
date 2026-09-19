@@ -86,7 +86,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Failed to load favorite rooms',
+                        'មិនអាចទាញយកបន្ទប់ដែលបានរក្សាទុកបានទេ',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
@@ -101,7 +101,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: _refreshRooms,
-                        child: const Text('Try again'),
+                        child: const Text('ព្យាយាមម្តងទៀត'),
                       ),
                     ],
                   ),
@@ -109,7 +109,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
               );
             }
             if (!snapshot.hasData) {
-              return const Center(child: Text('No room data'));
+              return const Center(child: Text('រកមិនឃើញទិន្នន័យបន្ទប់'));
             }
             final allRooms = snapshot.data!.data;
             final favoriteRooms = allRooms
@@ -162,13 +162,13 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             ),
             const SizedBox(height: 24),
             const Text(
-              'No favorites yet',
+              'មិនទាន់មានបន្ទប់ដែលបានរក្សាទុក',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Text(
-              'Save rooms you like and find them here later.',
+              'រក្សាទុកបន្ទប់ដែលអ្នកពេញចិត្ត ដើម្បីងាយស្រួលស្វែងរកពេលក្រោយ។',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
@@ -188,7 +188,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                   ),
                 ),
                 child: const Text(
-                  'Explore rooms',
+                  'ស្វែងរកបន្ទប់',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -424,25 +424,25 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     Get.dialog(
       AlertDialog(
         title: const Text(
-          'Clear favorites?',
+          'លុបបន្ទប់ដែលបានរក្សាទុក?',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         content: const Text(
-          'Are you sure you want to remove all favorite rooms?',
+          'តើអ្នកពិតជាចង់លុបបន្ទប់ដែលបានរក្សាទុកទាំងអស់មែនទេ?',
         ),
         actions: [
           TextButton(
             onPressed: () {
               Get.back();
             },
-            child: const Text('Cancel'),
+            child: const Text('បោះបង់'),
           ),
           TextButton(
             onPressed: () {
               favoriteController.clearFavorites();
               Get.back();
             },
-            child: const Text('Clear', style: TextStyle(color: Colors.red)),
+            child: const Text('លុប', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),

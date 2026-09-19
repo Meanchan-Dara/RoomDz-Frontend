@@ -113,7 +113,7 @@ class BakongPaymentDialog {
               },
               icon: const Icon(Icons.phone, size: 16, color: AppColors.primary),
               label: Text(
-                'Call Now',
+                'ទូរស័ព្ទផ្ទាល់',
                 style: GoogleFonts.battambang(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -262,8 +262,8 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
         customerName: _nameCtrl.text.trim(),
         customerPhone: _phoneCtrl.text.trim(),
         description: _paymentOption == 'deposit'
-            ? 'Booking deposit for ${widget.room.name}'
-            : 'Full rent payment for ${widget.room.name}',
+            ? 'ប្រាក់កក់សម្រាប់ ${widget.room.name}'
+            : 'ប្រាក់ថ្លៃបន្ទប់ពេញសម្រាប់ ${widget.room.name}',
       );
 
       if (res.success && res.data != null) {

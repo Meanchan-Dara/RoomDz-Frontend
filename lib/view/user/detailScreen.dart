@@ -53,13 +53,15 @@ class _DetailscreenState extends State<Detailscreen> {
         // Error state
         if (snapshot.hasError) {
           return Scaffold(
-            body: Center(child: Text('Error: ${snapshot.error}')),
+            body: Center(child: Text('មានបញ្ហា៖ ${snapshot.error}')),
           );
         }
 
         // Empty state
         if (!snapshot.hasData) {
-          return const Scaffold(body: Center(child: Text('No room data')));
+          return const Scaffold(
+            body: Center(child: Text('រកមិនឃើញទិន្នន័យបន្ទប់')),
+          );
         }
 
         // API Data
@@ -511,7 +513,7 @@ class _DetailscreenState extends State<Detailscreen> {
                                           SizedBox(width: 4),
                                           Expanded(
                                             child: Text(
-                                              'Responds within 15 mins',
+                                              'ឆ្លើយតបក្នុងរង្វង់ ១៥ នាទី',
                                               style: TextStyle(
                                                 fontSize: 13,
                                                 color: Color(0xFF64748B),
@@ -604,7 +606,7 @@ class _DetailscreenState extends State<Detailscreen> {
                                       ),
                                     ),
                                     child: const Text(
-                                      'Chat Now',
+                                      'ផ្ញើសារ',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -647,7 +649,7 @@ class _DetailscreenState extends State<Detailscreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         const Text(
-                                          'Phone Call',
+                                          'ទូរស័ព្ទផ្ទាល់',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Color(0xFF1E293B),
@@ -688,7 +690,7 @@ class _DetailscreenState extends State<Detailscreen> {
                                       ),
                                     ),
                                     child: const Text(
-                                      'Call Now',
+                                      'ហៅទូរស័ព្ទ',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
