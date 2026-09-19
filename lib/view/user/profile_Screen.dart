@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -225,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           bottom: 4,
                           right: 4,
                           child: Material(
-                            color: AppColors.secondary,
+                            color: AppColors.primary,
                             shape: const CircleBorder(),
                             elevation: 3,
 
@@ -624,13 +625,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final localPath = _profileCtrl.localAvatarPath.value;
 
     // local selected image
-    if (localPath != null) {
+    if (localPath != null &&
+        localPath.isNotEmpty &&
+        File(localPath).existsSync()) {
       return FileImage(File(localPath));
     }
 
     // saved user avatar
-    if (currentUser?.avatar != null && currentUser!.avatar!.isNotEmpty) {
-      return NetworkImage(currentUser!.avatar!);
+    final remote =
+        currentUser?.avatar ?? _profileCtrl.currentUser.value?.avatar;
+    if (remote != null && remote.isNotEmpty) {
+      return CachedNetworkImageProvider(remote);
     }
 
     // default avatar

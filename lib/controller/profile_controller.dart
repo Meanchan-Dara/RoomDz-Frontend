@@ -1,30 +1,65 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:roomdz_frontend/model/user_model.dart';
+import 'package:roomdz_frontend/service/auth_service.dart';
+import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/widget/app_alert.dart';
 
 class ProfileController extends GetxController {
   final ImagePicker _picker = ImagePicker();
   final _storage = const FlutterSecureStorage();
+  final AuthService _authService = AuthService();
 
   // selected local avatar path
   final RxnString localAvatarPath = RxnString();
+  final Rxn<UserModel> currentUser = Rxn<UserModel>();
+  final RxBool isUploadingAvatar = false.obs;
 
   @override
   void onInit() {
     super.onInit();
     _loadAvatarPath();
+    loadUser();
+  }
+
+  Future<void> loadUser() async {
+    try {
+      final user = await DatabaseService.instance.getSavedUser();
+      if (user != null) {
+        currentUser.value = user;
+      }
+    } catch (_) {}
   }
 
   Future<void> _loadAvatarPath() async {
-    final savedPath = await _storage.read(key: 'avatar_path');
-    if (savedPath != null) {
-      localAvatarPath.value = savedPath;
-    }
+    try {
+      final savedPath = await _storage.read(key: 'avatar_path');
+      if (savedPath != null) {
+        if (File(savedPath).existsSync()) {
+          localAvatarPath.value = savedPath;
+        } else {
+          await _storage.delete(key: 'avatar_path');
+        }
+      }
+    } catch (_) {}
   }
 
-  // show avatar picker
+  // update local path & storage
+  Future<void> updateAvatarPath(String? path) async {
+    localAvatarPath.value = path;
+    try {
+      if (path != null && path.isNotEmpty) {
+        await _storage.write(key: 'avatar_path', value: path);
+      } else {
+        await _storage.delete(key: 'avatar_path');
+      }
+    } catch (_) {}
+  }
+
+  // show avatar picker bottom sheet
   void showAvatarPicker(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -71,16 +106,18 @@ class ProfileController extends GetxController {
             ),
 
             // delete avatar
-            if (localAvatarPath.value != null)
+            if (localAvatarPath.value != null ||
+                (currentUser.value?.avatar != null &&
+                    currentUser.value!.avatar!.isNotEmpty))
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: Colors.red),
                 title: const Text(
                   'លុបរូបភាព',
                   style: TextStyle(color: Colors.red),
                 ),
-                onTap: () {
+                onTap: () async {
                   Get.back();
-                  removeAvatar();
+                  await removeAvatar();
                 },
               ),
 
@@ -91,7 +128,7 @@ class ProfileController extends GetxController {
     );
   }
 
-  // pick image
+  // pick image and sync across app and server
   Future<void> pickImage(ImageSource source) async {
     try {
       final picked = await _picker.pickImage(
@@ -102,17 +139,45 @@ class ProfileController extends GetxController {
       );
 
       if (picked != null) {
-        localAvatarPath.value = picked.path;
-        await _storage.write(key: 'avatar_path', value: picked.path);
+        await updateAvatarPath(picked.path);
+
+        // Upload to server and update SQLite user
+        try {
+          isUploadingAvatar.value = true;
+          final updatedUser = await _authService.updateProfile(
+            avatarPath: picked.path,
+          );
+          currentUser.value = updatedUser;
+          await DatabaseService.instance.saveUser(updatedUser);
+        } catch (e) {
+          debugPrint('Sync avatar to server error: $e');
+        } finally {
+          isUploadingAvatar.value = false;
+        }
       }
     } catch (e) {
       AppAlert.error('បរាជ័យ', 'មិនអាចជ្រើសរើសរូបភាពបានទេ');
     }
   }
 
-  // remove local avatar
+  // remove local avatar and clear storage
   Future<void> removeAvatar() async {
-    localAvatarPath.value = null;
-    await _storage.delete(key: 'avatar_path');
+    await updateAvatarPath(null);
+    if (currentUser.value != null) {
+      currentUser.value = UserModel(
+        id: currentUser.value!.id,
+        name: currentUser.value!.name,
+        email: currentUser.value!.email,
+        phone: currentUser.value!.phone,
+        avatar: null,
+        isVerified: currentUser.value!.isVerified,
+        telegram: currentUser.value!.telegram,
+        locationTag: currentUser.value!.locationTag,
+        bakongAccountId: currentUser.value!.bakongAccountId,
+        bakongMerchantName: currentUser.value!.bakongMerchantName,
+        role: currentUser.value!.role,
+      );
+      await DatabaseService.instance.saveUser(currentUser.value!);
+    }
   }
 }

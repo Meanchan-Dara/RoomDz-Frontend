@@ -72,15 +72,20 @@ class _HomescreenState extends State<Homescreen> {
             padding: const EdgeInsets.all(8.0),
             child: Obx(() {
               final path = _profileCtrl.localAvatarPath.value;
+              final remote = _profileCtrl.currentUser.value?.avatar;
 
-              return CircleAvatar(
-                radius: 25,
-                backgroundImage: path != null
-                    ? FileImage(File(path))
-                    : const NetworkImage(
-                        'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
-                      ),
-              );
+              ImageProvider image;
+              if (path != null && path.isNotEmpty && File(path).existsSync()) {
+                image = FileImage(File(path));
+              } else if (remote != null && remote.isNotEmpty) {
+                image = CachedNetworkImageProvider(remote);
+              } else {
+                image = const NetworkImage(
+                  'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+                );
+              }
+
+              return CircleAvatar(radius: 25, backgroundImage: image);
             }),
           ),
         ),

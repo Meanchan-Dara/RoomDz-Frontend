@@ -161,7 +161,6 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
   late final TextEditingController _phoneCtrl;
   bool _isGenerating = false;
   bool _isChecking = false;
-  bool _isSimulating = false;
 
   // Amount selection: 'deposit' or 'full'
   String _paymentOption = 'deposit';
@@ -274,7 +273,8 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
         _secondsRemaining = 300;
         _isBakongLimitReached = false;
         _startCountdown();
-        _startPolling();
+        // Do not auto-poll every 3 seconds to save Bakong daily quota (100 limit).
+        // Only request Bakong when user clicks "ខ្ញុំបានបង់ប្រាក់រួចរាល់".
 
         setState(() {
           _step = _PaymentStep.qr;
@@ -304,17 +304,9 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
     });
   }
 
-  void _startPolling() {
-    _pollingTimer?.cancel();
-    // Poll every 3 seconds
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      _checkPaymentStatusSilently();
-    });
-  }
-
   /// Triggered when Bakong request quota hits 100 requests
   void _onBakongLimitReached(String? message, int count, [int limit = 100]) {
-    _pollingTimer?.cancel(); // Immediately halt polling
+    _pollingTimer?.cancel();
     if (!mounted) return;
 
     setState(() {
@@ -325,37 +317,12 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
 
     // Alert user via GetX Snackbar
     AppAlert.error(
-      'Bakong Limit Reached (/)',
+      'Bakong Limit Reached ($count/$limit)',
       message != null && message.isNotEmpty
           ? message
-          : 'សំណើទៅកាន់ Bakong ដល់កម្រិតកំណត់ / ដងហើយ! Bakong បានផ្អាកទទួល request ជាបណ្ដោះអាសន្ន។',
+          : 'សំណើទៅកាន់ Bakong ដល់កម្រិតកំណត់ $count/$limit ដងហើយ! Bakong បានផ្អាកទទួល request ជាបណ្ដោះអាសន្ន។',
       const Duration(seconds: 5),
     );
-  }
-
-  Future<void> _checkPaymentStatusSilently() async {
-    if (_qrData == null || !mounted || _isBakongLimitReached) return;
-    try {
-      final res = await _paymentService.checkStatus(_qrData!.paymentId);
-      if (!mounted) return;
-
-      setState(() {
-        _bakongRequestCount = res.bakongRequestCount;
-        _bakongRequestLimit = res.bakongRequestLimit;
-      });
-
-      if (res.isPaid) {
-        _onPaymentSuccess(res.data);
-      } else if (res.limitReached) {
-        _onBakongLimitReached(res.message, res.bakongRequestCount, res.bakongRequestLimit);
-      }
-    } on BakongLimitException catch (e) {
-      if (mounted) {
-        _onBakongLimitReached(e.message, e.requestCount, e.requestLimit);
-      }
-    } catch (_) {
-      // Ignore background network blips
-    }
   }
 
   // Manual Check Button
@@ -365,7 +332,7 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
     if (_isBakongLimitReached) {
       AppAlert.warning(
         'Bakong Limit Reached',
-        'ការស្នើសុំទៅកាន់ Bakong ដល់កម្រិតកំណត់ / ដងហើយ! សូមព្យាយាមម្តងទៀតនៅពេលក្រោយ។',
+        'ការស្នើសុំទៅកាន់ Bakong ដល់កម្រិតកំណត់ $_bakongRequestCount/$_bakongRequestLimit ដងហើយ! សូមព្យាយាមម្តងទៀតនៅពេលក្រោយ។',
       );
       return;
     }
@@ -384,7 +351,11 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
       if (res.isPaid) {
         _onPaymentSuccess(res.data);
       } else if (res.limitReached) {
-        _onBakongLimitReached(res.message, res.bakongRequestCount, res.bakongRequestLimit);
+        _onBakongLimitReached(
+          res.message,
+          res.bakongRequestCount,
+          res.bakongRequestLimit,
+        );
       } else {
         AppAlert.info(
           'ស្ថានភាពទូទាត់',
@@ -399,25 +370,6 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
       AppAlert.error('កំហុស', e.toString().replaceAll('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _isChecking = false);
-    }
-  }
-
-  // Simulate Button (Dev / Testing)
-  Future<void> _handleSimulateSuccess() async {
-    if (_qrData == null) return;
-    setState(() => _isSimulating = true);
-
-    try {
-      final res = await _paymentService.simulateSuccess(_qrData!.paymentId);
-      if (res.isPaid && mounted) {
-        _onPaymentSuccess(res.data);
-      } else {
-        throw Exception(res.message);
-      }
-    } catch (e) {
-      AppAlert.error('កំហុស', e.toString().replaceAll('Exception: ', ''));
-    } finally {
-      if (mounted) setState(() => _isSimulating = false);
     }
   }
 
@@ -1143,46 +1095,35 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
             ),
           )
         else
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(
-                width: 14,
-                height: 14,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.touch_app_outlined,
+                  size: 16,
+                  color: AppColors.primary,
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'កំពុងរង់ចាំការស្កេនពី App ធនាគារ...',
-                style: GoogleFonts.battambang(
-                  fontSize: 12,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-              if (_bakongRequestCount > 0) ...[
                 const SizedBox(width: 8),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
+                Flexible(
                   child: Text(
-                    'Bakong: $_bakongRequestCount/$_bakongRequestLimit',
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
+                    'ស្កេនរួច សូមចុច «ខ្ញុំបានបង់ប្រាក់រួចរាល់» ខាងក្រោម',
+                    style: GoogleFonts.battambang(
+                      fontSize: 12,
+                      color: const Color(0xFF475569),
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF64748B),
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ],
-            ],
+            ),
           ),
 
         const SizedBox(height: 18),
@@ -1210,44 +1151,7 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
             ),
           ),
         ),
-
-        const SizedBox(height: 10),
-
-        // Simulation Button (Dev Tool)
-        SizedBox(
-          width: double.infinity,
-          height: 42,
-          child: OutlinedButton.icon(
-            onPressed: _isSimulating ? null : _handleSimulateSuccess,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF16A34A),
-              side: const BorderSide(color: Color(0xFF86EFAC)),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            icon: _isSimulating
-                ? const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(Color(0xFF16A34A)),
-                    ),
-                  )
-                : const Icon(Icons.bolt, size: 18, color: Color(0xFF16A34A)),
-            label: Text(
-              'សាកល្បងបង់ប្រាក់ជោគជ័យ (Dev Mode)',
-              style: GoogleFonts.battambang(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF16A34A),
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
       ],
     );
   }

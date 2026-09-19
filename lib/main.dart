@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/controller/favorite_controller.dart';
+import 'package:roomdz_frontend/controller/profile_controller.dart';
 import 'package:roomdz_frontend/service/api_client.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/view/user/signInScreen.dart';
@@ -14,6 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Get.put(FavoriteController());
+  Get.put(ProfileController(), permanent: true);
 
   // Check both SQLite session and JWT token in secure storage
   final savedUser = await DatabaseService.instance.getSavedUser();

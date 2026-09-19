@@ -56,6 +56,17 @@ class _ChangeProfileState extends State<ChangeProfile> {
   }
 
   Future<void> _loadProfile() async {
+    // Check local avatar from ProfileController first
+    if (Get.isRegistered<ProfileController>()) {
+      final currentLocalPath =
+          Get.find<ProfileController>().localAvatarPath.value;
+      if (currentLocalPath != null &&
+          currentLocalPath.isNotEmpty &&
+          File(currentLocalPath).existsSync()) {
+        _pickedImagePath = currentLocalPath;
+      }
+    }
+
     // First load from local SQLite
     final localUser = await DatabaseService.instance.getSavedUser();
     if (localUser != null && mounted) {
@@ -105,6 +116,9 @@ class _ChangeProfileState extends State<ChangeProfile> {
         setState(() {
           _pickedImagePath = picked.path;
         });
+        if (Get.isRegistered<ProfileController>()) {
+          await Get.find<ProfileController>().updateAvatarPath(picked.path);
+        }
       }
     } catch (e) {
       AppAlert.error('បរាជ័យ', 'មិនអាចជ្រើសរើសរូបភាពបានទេ');
@@ -157,16 +171,40 @@ class _ChangeProfileState extends State<ChangeProfile> {
                 _pickImage(ImageSource.gallery);
               },
             ),
-            if (_pickedImagePath != null || _user?.avatar != null)
+            if (_pickedImagePath != null ||
+                (_user?.avatar != null && _user!.avatar!.isNotEmpty) ||
+                (Get.isRegistered<ProfileController>() &&
+                    Get.find<ProfileController>().localAvatarPath.value !=
+                        null))
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: Colors.red),
                 title: Text(
                   'លុបរូបភាព',
                   style: GoogleFonts.battambang(color: Colors.red),
                 ),
-                onTap: () {
+                onTap: () async {
                   Get.back();
-                  setState(() => _pickedImagePath = null);
+                  setState(() {
+                    _pickedImagePath = '';
+                    if (_user != null) {
+                      _user = UserModel(
+                        id: _user!.id,
+                        name: _user!.name,
+                        email: _user!.email,
+                        phone: _user!.phone,
+                        avatar: null,
+                        isVerified: _user!.isVerified,
+                        telegram: _user!.telegram,
+                        locationTag: _user!.locationTag,
+                        bakongAccountId: _user!.bakongAccountId,
+                        bakongMerchantName: _user!.bakongMerchantName,
+                        role: _user!.role,
+                      );
+                    }
+                  });
+                  if (Get.isRegistered<ProfileController>()) {
+                    await Get.find<ProfileController>().removeAvatar();
+                  }
                 },
               ),
             const SizedBox(height: 12),
@@ -198,7 +236,7 @@ class _ChangeProfileState extends State<ChangeProfile> {
     setState(() => _isSaving = true);
 
     try {
-      await _authService.updateProfile(
+      final updatedUser = await _authService.updateProfile(
         name: name,
         phone: phone,
         email: email,
@@ -206,13 +244,21 @@ class _ChangeProfileState extends State<ChangeProfile> {
         locationTag: locationTag,
         bakongAccountId: bakongAccount,
         bakongMerchantName: bakongMerchant,
-        avatarPath: _pickedImagePath,
+        avatarPath: (_pickedImagePath != null && _pickedImagePath!.isNotEmpty)
+            ? _pickedImagePath
+            : null,
       );
 
       // Sync with profile controller if registered
-      if (Get.isRegistered<ProfileController>() && _pickedImagePath != null) {
-        Get.find<ProfileController>().localAvatarPath.value = _pickedImagePath;
+      if (Get.isRegistered<ProfileController>()) {
+        final ctrl = Get.find<ProfileController>();
+        ctrl.currentUser.value = updatedUser;
+        if (_pickedImagePath != null && _pickedImagePath!.isNotEmpty) {
+          await ctrl.updateAvatarPath(_pickedImagePath);
+        }
       }
+
+      await DatabaseService.instance.saveUser(updatedUser);
 
       if (mounted) {
         Get.back(result: true);
@@ -226,13 +272,30 @@ class _ChangeProfileState extends State<ChangeProfile> {
   }
 
   ImageProvider _resolveAvatarImage() {
-    if (_pickedImagePath != null) {
+    if (_pickedImagePath != null &&
+        _pickedImagePath!.isNotEmpty &&
+        File(_pickedImagePath!).existsSync()) {
       return FileImage(File(_pickedImagePath!));
     }
-    if (_user?.avatar != null && _user!.avatar!.isNotEmpty) {
-      return CachedNetworkImageProvider(_user!.avatar!);
+    if (Get.isRegistered<ProfileController>()) {
+      final ctrlPath = Get.find<ProfileController>().localAvatarPath.value;
+      if (ctrlPath != null &&
+          ctrlPath.isNotEmpty &&
+          File(ctrlPath).existsSync()) {
+        return FileImage(File(ctrlPath));
+      }
     }
-    return const AssetImage('assets/images/logo.png');
+    final remoteAvatar =
+        _user?.avatar ??
+        (Get.isRegistered<ProfileController>()
+            ? Get.find<ProfileController>().currentUser.value?.avatar
+            : null);
+    if (remoteAvatar != null && remoteAvatar.isNotEmpty) {
+      return CachedNetworkImageProvider(remoteAvatar);
+    }
+    return const NetworkImage(
+      'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+    );
   }
 
   @override
@@ -275,11 +338,18 @@ class _ChangeProfileState extends State<ChangeProfile> {
                               width: 2.5,
                             ),
                           ),
-                          child: CircleAvatar(
-                            radius: 54,
-                            backgroundColor: Colors.grey.shade200,
-                            backgroundImage: _resolveAvatarImage(),
-                          ),
+                          child: Obx(() {
+                            if (Get.isRegistered<ProfileController>()) {
+                              Get.find<ProfileController>()
+                                  .localAvatarPath
+                                  .value;
+                            }
+                            return CircleAvatar(
+                              radius: 54,
+                              backgroundColor: Colors.grey.shade200,
+                              backgroundImage: _resolveAvatarImage(),
+                            );
+                          }),
                         ),
                         Positioned(
                           bottom: 0,
