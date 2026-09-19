@@ -14,6 +14,7 @@ import 'package:roomdz_frontend/util/url_util.dart';
 import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
 import 'package:roomdz_frontend/widget/skeleton/detail_screen_skeleton.dart';
+import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class Detailscreen extends StatefulWidget {
   final int id;
@@ -1098,6 +1099,8 @@ class _DetailscreenState extends State<Detailscreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
+                          disabledBackgroundColor: AppColors.primary,
+                          disabledForegroundColor: Colors.white,
                           elevation: 2,
                           shadowColor: AppColors.primary.withValues(alpha: 0.3),
                           shape: RoundedRectangleBorder(
@@ -1167,30 +1170,12 @@ class _DetailscreenState extends State<Detailscreen> {
                                   );
                                 }
                               },
-                        child: isSubmitting
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.send_rounded, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'ផ្ញើសំណើ',
-                                    style: GoogleFonts.battambang(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                        child: ModernButtonContent(
+                          isLoading: isSubmitting,
+                          text: 'ផ្ញើសំណើ',
+                          loadingText: 'កំពុងផ្ញើសំណើ',
+                          icon: Icons.send_rounded,
+                        ),
                       ),
                     ),
                   ],

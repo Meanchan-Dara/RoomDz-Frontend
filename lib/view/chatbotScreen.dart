@@ -445,6 +445,8 @@ class _Composer extends StatelessWidget {
               style: IconButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.primary,
+                disabledForegroundColor: Colors.white,
                 fixedSize: const Size(48, 48),
               ),
               icon: const Icon(Icons.send_rounded),

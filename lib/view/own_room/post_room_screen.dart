@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/service/rooms/owner_room_service.dart';
+import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class PostRoomScreen extends StatefulWidget {
   const PostRoomScreen({super.key});
@@ -1304,53 +1305,20 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
                 onPressed: _isSubmitting ? null : _submitRoom,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
+                  disabledBackgroundColor: AppColors.primary,
+                  disabledForegroundColor: Colors.white,
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: _isSubmitting
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'កំពុងបង្ហោះបន្ទប់...',
-                            style: GoogleFonts.battambang(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.cloud_upload_outlined,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'បង្ហោះបន្ទប់ឥឡូវនេះ',
-                            style: GoogleFonts.battambang(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                child: ModernButtonContent(
+                  isLoading: _isSubmitting,
+                  text: 'បង្ហោះបន្ទប់ឥឡូវនេះ',
+                  loadingText: 'កំពុងបង្ហោះបន្ទប់',
+                  icon: Icons.cloud_upload_outlined,
+                  iconSize: 22,
+                ),
               ),
             ),
 

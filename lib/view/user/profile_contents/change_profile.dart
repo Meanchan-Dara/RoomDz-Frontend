@@ -10,6 +10,7 @@ import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
+import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class ChangeProfile extends StatefulWidget {
   const ChangeProfile({super.key});
@@ -542,27 +543,18 @@ class _ChangeProfileState extends State<ChangeProfile> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: AppColors.primary,
+                        disabledForegroundColor: Colors.white,
                         elevation: 2,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              'រក្សាទុកការផ្លាស់ប្តូរ',
-                              style: GoogleFonts.battambang(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      child: ModernButtonContent(
+                        isLoading: _isSaving,
+                        text: 'រក្សាទុកការផ្លាស់ប្តូរ',
+                        loadingText: 'កំពុងរក្សាទុក',
+                      ),
                     ),
                   ),
                 ],

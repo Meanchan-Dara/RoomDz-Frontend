@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
+import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class SearchPreferencesScreen extends StatefulWidget {
   const SearchPreferencesScreen({super.key});
@@ -376,28 +377,18 @@ class _SearchPreferencesScreenState extends State<SearchPreferencesScreen> {
                 onPressed: _isLoading ? null : _savePreferences,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
+                  disabledBackgroundColor: AppColors.primary,
+                  disabledForegroundColor: Colors.white,
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        'រក្សាទុកការកំណត់',
-                        style: GoogleFonts.battambang(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                child: ModernButtonContent(
+                  isLoading: _isLoading,
+                  text: 'រក្សាទុកការកំណត់',
+                  loadingText: 'កំពុងរក្សាទុក',
+                ),
               ),
             ),
 

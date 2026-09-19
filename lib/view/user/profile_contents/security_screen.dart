@@ -7,6 +7,7 @@ import 'package:roomdz_frontend/service/api_client.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
+import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class SecurityScreen extends StatefulWidget {
   final UserModel? user;
@@ -270,6 +271,8 @@ class _SecurityScreenState extends State<SecurityScreen> {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
+                            disabledBackgroundColor: AppColors.primary,
+                            disabledForegroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -320,23 +323,11 @@ class _SecurityScreenState extends State<SecurityScreen> {
                                     setSheetState(() => isSubmitting = false);
                                   }
                                 },
-                          child: isSubmitting
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  'រក្សាទុកពាក្យសម្ងាត់ថ្មី',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                          child: ModernButtonContent(
+                            isLoading: isSubmitting,
+                            text: 'រក្សាទុកពាក្យសម្ងាត់ថ្មី',
+                            loadingText: 'កំពុងរក្សាទុក',
+                          ),
                         ),
                       ),
                     ],

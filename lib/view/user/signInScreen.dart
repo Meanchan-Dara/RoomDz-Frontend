@@ -6,6 +6,7 @@ import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/widget/parentScreen.dart';
 import 'package:roomdz_frontend/widget/parent_screen_own.dart';
+import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 import 'package:roomdz_frontend/view/user/registerScreen.dart';
 
 class Signinscreen extends StatefulWidget {
@@ -120,6 +121,8 @@ class _SigninscreenState extends State<Signinscreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
+                  disabledBackgroundColor: AppColors.primary,
+                  disabledForegroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -168,16 +171,11 @@ class _SigninscreenState extends State<Signinscreen> {
                           if (mounted) setState(() => isLoading = false);
                         }
                       },
-                child: isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text(
-                        "ចូលប្រេីប្រាស់",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                child: ModernButtonContent(
+                  isLoading: isLoading,
+                  text: 'ចូលប្រើប្រាស់',
+                  loadingText: 'កំពុងចូល',
+                ),
               ),
               const SizedBox(height: 8),
 

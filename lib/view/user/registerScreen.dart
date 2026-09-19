@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/view/user/signInScreen.dart';
+import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class Registerscreen extends StatefulWidget {
   const Registerscreen({super.key});
@@ -283,18 +284,17 @@ class _RegisterscreenState extends State<Registerscreen> {
                           },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
+                      disabledBackgroundColor: AppColors.primary,
+                      disabledForegroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
-                      'បង្កើតគណនី',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    child: ModernButtonContent(
+                      isLoading: isloading,
+                      text: 'បង្កើតគណនី',
+                      loadingText: 'កំពុងបង្កើតគណនី',
                     ),
                   ),
                 ),

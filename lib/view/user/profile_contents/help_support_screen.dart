@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/view/chatbotScreen.dart';
+import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HelpSupportScreen extends StatefulWidget {
@@ -398,38 +399,22 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: ElevatedButton.icon(
+                    child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _submitFeedback,
-                      icon: _isSubmitting
-                          ? const SizedBox.shrink()
-                          : const Icon(
-                              Icons.send_rounded,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                      label: _isSubmitting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              'ផ្ញើមតិកែលម្អ',
-                              style: GoogleFonts.battambang(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
+                        disabledBackgroundColor: AppColors.primary,
+                        disabledForegroundColor: Colors.white,
                         elevation: 1,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                      ),
+                      child: ModernButtonContent(
+                        isLoading: _isSubmitting,
+                        text: 'ផ្ញើមតិកែលម្អ',
+                        loadingText: 'កំពុងផ្ញើ',
+                        icon: Icons.send_rounded,
                       ),
                     ),
                   ),
