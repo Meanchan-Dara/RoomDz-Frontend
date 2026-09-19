@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/service/rooms/owner_room_service.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class PostRoomScreen extends StatefulWidget {
@@ -33,6 +33,7 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
   final TextEditingController _sizeCtrl = TextEditingController();
   final TextEditingController _floorCtrl = TextEditingController();
   final TextEditingController _depositCtrl = TextEditingController();
+  final TextEditingController _depositPriceCtrl = TextEditingController();
   final TextEditingController _descriptionCtrl = TextEditingController();
   final TextEditingController _customFacilityCtrl = TextEditingController();
   final TextEditingController _customRuleCtrl = TextEditingController();
@@ -102,6 +103,7 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
     _sizeCtrl.dispose();
     _floorCtrl.dispose();
     _depositCtrl.dispose();
+    _depositPriceCtrl.dispose();
     _descriptionCtrl.dispose();
     _customFacilityCtrl.dispose();
     _customRuleCtrl.dispose();
@@ -136,11 +138,7 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
         setState(() => _coverImage = picked);
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'មិនអាចជ្រើសរើសរូបភាពបានទេ: $e',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', 'មិនអាចជ្រើសរើសរូបភាពបានទេ: $e');
     }
   }
 
@@ -157,11 +155,7 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
         });
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'មិនអាចជ្រើសរើសរូបភាពបានទេ: $e',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', 'មិនអាចជ្រើសរើសរូបភាពបានទេ: $e');
     }
   }
 
@@ -170,10 +164,9 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        Get.snackbar(
+        AppAlert.warning(
           'សេវាទីតាំង',
           'សូមបើក Location Service នៅលើទូរស័ព្ទរបស់អ្នក',
-          snackPosition: SnackPosition.TOP,
         );
         return;
       }
@@ -182,20 +175,15 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          Get.snackbar(
-            'ការអនុញ្ញាត',
-            'ការចូលប្រើទីតាំងត្រូវបានបដិសេធ',
-            snackPosition: SnackPosition.TOP,
-          );
+          AppAlert.warning('ការអនុញ្ញាត', 'ការចូលប្រើទីតាំងត្រូវបានបដិសេធ');
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        Get.snackbar(
+        AppAlert.warning(
           'ការអនុញ្ញាត',
           'សូមបើកសិទ្ធិចូលប្រើទីតាំងនៅក្នុង Settings',
-          snackPosition: SnackPosition.TOP,
         );
         return;
       }
@@ -211,20 +199,10 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
           _latitude = pos.latitude;
           _longitude = pos.longitude;
         });
-        Get.snackbar(
-          'ជោគជ័យ',
-          'ទទួលបានកូអរដោនេទីតាំងបច្ចុប្បន្នរួចរាល់',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green.shade50,
-          colorText: Colors.green.shade800,
-        );
+        AppAlert.success('ជោគជ័យ', 'ទទួលបានកូអរដោនេទីតាំងបច្ចុប្បន្នរួចរាល់');
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'មិនអាចទាញយកទីតាំងបានទេ: $e',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', 'មិនអាចទាញយកទីតាំងបានទេ: $e');
     } finally {
       if (mounted) setState(() => _isGettingLocation = false);
     }
@@ -232,23 +210,17 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
 
   Future<void> _submitRoom() async {
     if (!_formKey.currentState!.validate()) {
-      Get.snackbar(
+      AppAlert.warning(
         'ព័ត៌មានមិនទាន់គ្រប់គ្រាន់',
         'សូមបំពេញចន្លោះដែលតម្រូវឱ្យបានត្រឹមត្រូវ',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange.shade50,
-        colorText: Colors.orange.shade900,
       );
       return;
     }
 
     if (_coverImage == null) {
-      Get.snackbar(
+      AppAlert.warning(
         'ត្រូវការរូបភាព',
         'សូមជ្រើសរើសរូបភាពតំណាងបន្ទប់យ៉ាងហោចណាស់ ១ សន្លឹក',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade50,
-        colorText: Colors.red.shade900,
       );
       return;
     }
@@ -280,6 +252,7 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
         deposit: _depositCtrl.text.trim().isNotEmpty
             ? _depositCtrl.text.trim()
             : null,
+        depositPrice: double.tryParse(_depositPriceCtrl.text.trim()),
         facilities: _selectedFacilities.toList(),
         houseRules: _selectedRules.toList(),
         latitude: _latitude,
@@ -290,26 +263,12 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
 
       if (!mounted) return;
 
-      Get.snackbar(
-        'ជោគជ័យ',
-        'បន្ទប់របស់អ្នកត្រូវបានបង្ហោះដោយជោគជ័យ!',
-        backgroundColor: Colors.green.shade500,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-        duration: const Duration(seconds: 3),
-      );
+      AppAlert.success('ជោគជ័យ', 'បន្ទប់របស់អ្នកត្រូវបានបង្ហោះដោយជោគជ័យ!');
 
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      Get.snackbar(
-        'បរាជ័យ',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade50,
-        colorText: Colors.red.shade900,
-        duration: const Duration(seconds: 4),
-      );
+      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -946,13 +905,34 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _buildLabel('ប្រាក់កក់ (Deposit)'),
+                  _buildLabel('ប្រាក់កក់ (Deposit General)'),
                   TextFormField(
                     controller: _depositCtrl,
                     style: GoogleFonts.battambang(),
                     decoration: _inputDecoration(
                       hint: 'ឧ. ១ ខែ ឬ មិនតម្រូវឱ្យកក់',
                       prefixIcon: Icons.shield_outlined,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildLabel('ប្រាក់កក់សម្រាប់កក់បន្ទប់តាម Bakong KHQR (\$)'),
+                  TextFormField(
+                    controller: _depositPriceCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    style: GoogleFonts.battambang(),
+                    decoration: _inputDecoration(
+                      hint: 'ឧ. 20 (ចំនួនទឹកប្រាក់ដែល Customer ត្រូវកក់)',
+                      prefixIcon: Icons.payments_outlined,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '* អតិថិជននឹងបង់ប្រាក់កក់ចំនួននេះតាម Bakong KHQR ចូលគណនីបាគងរបស់អ្នកដោយផ្ទាល់ ដើម្បីចាក់សោកក់បន្ទប់នេះ។',
+                    style: GoogleFonts.battambang(
+                      fontSize: 11,
+                      color: const Color(0xFF64748B),
                     ),
                   ),
                 ],

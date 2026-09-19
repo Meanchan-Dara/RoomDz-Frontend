@@ -4,6 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:roomdz_frontend/model/roomModel.dart';
 import 'package:roomdz_frontend/service/rooms/room_service.dart';
 import 'package:roomdz_frontend/view/user/detailScreen.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 
 class Mapscreen extends StatefulWidget {
   const Mapscreen({super.key});
@@ -48,11 +49,7 @@ class _MapscreenState extends State<Mapscreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        Get.snackbar(
-          'Error',
-          'Failed to load rooms on map',
-          snackPosition: SnackPosition.TOP,
-        );
+        AppAlert.error('បរាជ័យ', 'មិនអាចទាញយកទីតាំងបន្ទប់នៅលើផែនទីបានទេ');
       }
     }
   }

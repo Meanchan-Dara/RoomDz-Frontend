@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:roomdz_frontend/controller/category_fillter.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 
 class LocationController extends GetxController {
   final CategoryFilter categoryFilter;
@@ -95,10 +96,9 @@ class LocationController extends GetxController {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
       if (!serviceEnabled) {
-        Get.snackbar(
-          'Location disabled',
-          'Please turn on location service on your device.',
-          snackPosition: SnackPosition.TOP,
+        AppAlert.warning(
+          'សេវាទីតាំង',
+          'សូមបើក Location Service នៅលើទូរស័ព្ទរបស់អ្នក',
         );
 
         return;
@@ -111,20 +111,15 @@ class LocationController extends GetxController {
       }
 
       if (permission == LocationPermission.denied) {
-        Get.snackbar(
-          'Permission denied',
-          'Location permission was denied.',
-          snackPosition: SnackPosition.TOP,
-        );
+        AppAlert.warning('ការអនុញ្ញាត', 'ការចូលប្រើទីតាំងត្រូវបានបដិសេធ');
 
         return;
       }
 
       if (permission == LocationPermission.deniedForever) {
-        Get.snackbar(
-          'Permission denied',
-          'Please enable location permission from settings.',
-          snackPosition: SnackPosition.TOP,
+        AppAlert.warning(
+          'ការអនុញ្ញាត',
+          'សូមបើកសិទ្ធិចូលប្រើទីតាំងនៅក្នុង Settings',
         );
 
         await Geolocator.openAppSettings();
@@ -144,10 +139,9 @@ class LocationController extends GetxController {
       );
 
       if (placemarks.isEmpty) {
-        Get.snackbar(
-          'Location not found',
-          'Could not find your location.',
-          snackPosition: SnackPosition.TOP,
+        AppAlert.warning(
+          'រកមិនឃើញទីតាំង',
+          'មិនអាចស្វែងរកទីតាំងបច្ចុប្បន្នរបស់អ្នកបានទេ',
         );
 
         return;
@@ -174,10 +168,9 @@ class LocationController extends GetxController {
       final locationName = locationParts.join(', ');
 
       if (locationName.isEmpty) {
-        Get.snackbar(
-          'Location not found',
-          'Could not convert GPS location to an address.',
-          snackPosition: SnackPosition.TOP,
+        AppAlert.warning(
+          'រកមិនឃើញទីតាំង',
+          'មិនអាចបំលែងកូអរដោនេទៅជាអាសយដ្ឋានបានទេ',
         );
 
         return;
@@ -195,10 +188,9 @@ class LocationController extends GetxController {
     } catch (e) {
       print('error getting current location: $e');
 
-      Get.snackbar(
-        'Location error',
-        'Unable to get your current location.',
-        snackPosition: SnackPosition.TOP,
+      AppAlert.error(
+        'បញ្ហាទីតាំង',
+        'មិនអាចទាញយកទីតាំងបច្ចុប្បន្នរបស់អ្នកបានទេ',
       );
     } finally {
       isGettingCurrentLocation.value = false;

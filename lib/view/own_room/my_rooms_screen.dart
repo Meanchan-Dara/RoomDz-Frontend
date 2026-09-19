@@ -8,6 +8,8 @@ import 'package:roomdz_frontend/service/rooms/owner_room_service.dart';
 import 'package:roomdz_frontend/view/own_room/post_room_screen.dart';
 import 'package:roomdz_frontend/view/user/detailScreen.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyRoomsScreen extends StatefulWidget {
   const MyRoomsScreen({super.key});
@@ -164,22 +166,10 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
     if (confirm == true) {
       try {
         await _roomService.deleteRoom(id);
-        Get.snackbar(
-          'ជោគជ័យ',
-          'បានលុបបន្ទប់រួចរាល់',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green.shade50,
-          colorText: Colors.green.shade800,
-        );
+        AppAlert.success('ជោគជ័យ', 'បានលុបបន្ទប់រួចរាល់');
         _fetchRooms();
       } catch (e) {
-        Get.snackbar(
-          'Error',
-          e.toString().replaceFirst('Exception: ', ''),
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red.shade50,
-          colorText: Colors.red.shade900,
-        );
+        AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
@@ -187,40 +177,20 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
   Future<void> _handleRentOut(int id) async {
     try {
       await _roomService.rentOutRoom(id);
-      Get.snackbar(
-        'ជោគជ័យ',
-        'បានកាត់បន្ថយបន្ទប់ទំនេររួចរាល់',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade50,
-        colorText: Colors.green.shade800,
-      );
+      AppAlert.success('ជោគជ័យ', 'បានកាត់បន្ថយបន្ទប់ទំនេររួចរាល់');
       _fetchRooms();
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
   Future<void> _handleReleaseUnit(int id) async {
     try {
       await _roomService.releaseUnit(id);
-      Get.snackbar(
-        'ជោគជ័យ',
-        'បានបន្ថែមចំនួនបន្ទប់ទំនេរវិញរួចរាល់',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade50,
-        colorText: Colors.green.shade800,
-      );
+      AppAlert.success('ជោគជ័យ', 'បានបន្ថែមចំនួនបន្ទប់ទំនេរវិញរួចរាល់');
       _fetchRooms();
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -548,272 +518,364 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
         onTap: () {
           Get.to(() => Detailscreen(id: room.id));
         },
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Thumbnail (Exact 120 x 140 layout matching SearchRoomCard)
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
-              ),
-              child: SizedBox(
-                width: 120,
-                height: 140,
-                child: room.image != null && room.image!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: room.image!,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) {
-                          return Container(
-                            color: Colors.grey.shade200,
-                            child: const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          );
-                        },
-                        errorWidget: (context, url, error) {
-                          return Container(
-                            color: Colors.grey.shade200,
-                            child: const Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey,
-                            ),
-                          );
-                        },
-                      )
-                    : Container(
-                        color: Colors.grey.shade200,
-                        child: const Icon(
-                          Icons.apartment_outlined,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
-                      ),
-              ),
-            ),
-
-            // Content details
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title & Owner Popup Menu
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            room.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.battambang(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.neutral,
-                            ),
-                          ),
-                        ),
-                        PopupMenuButton<String>(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(
-                            Icons.more_vert_rounded,
-                            size: 20,
-                            color: Color(0xFF64748B),
-                          ),
-                          onSelected: (val) {
-                            if (val == 'details') {
-                              Get.to(() => Detailscreen(id: room.id));
-                            } else if (val == 'rent_out') {
-                              _handleRentOut(room.id);
-                            } else if (val == 'release') {
-                              _handleReleaseUnit(room.id);
-                            } else if (val == 'delete') {
-                              _confirmDeleteRoom(room.id, room.name);
-                            }
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Thumbnail (Exact 120 width layout matching SearchRoomCard)
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                ),
+                child: SizedBox(
+                  width: 120,
+                  child: room.image != null && room.image!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: room.image!,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) {
+                            return Container(
+                              color: Colors.grey.shade200,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            );
                           },
-                          itemBuilder: (ctx) => [
-                            PopupMenuItem(
-                              value: 'details',
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.visibility_outlined,
-                                    size: 18,
-                                    color: AppColors.primary,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'មើលព័ត៌មានលម្អិត',
-                                    style: GoogleFonts.battambang(fontSize: 13),
-                                  ),
-                                ],
+                          errorWidget: (context, url, error) {
+                            return Container(
+                              color: Colors.grey.shade200,
+                              child: const Icon(
+                                Icons.image_not_supported_outlined,
+                                color: Colors.grey,
                               ),
-                            ),
-                            PopupMenuItem(
-                              value: 'rent_out',
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.person_remove_outlined,
-                                    size: 18,
-                                    color: Colors.orange,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'ជួលបន្ទប់ចេញ (-1)',
-                                    style: GoogleFonts.battambang(fontSize: 13),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'release',
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.person_add_outlined,
-                                    size: 18,
-                                    color: Colors.green,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'ដោះលែងបន្ទប់ (+1)',
-                                    style: GoogleFonts.battambang(fontSize: 13),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const PopupMenuDivider(),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.delete_outline,
-                                    size: 18,
-                                    color: Colors.red,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'លុបបន្ទប់',
-                                    style: GoogleFonts.battambang(
-                                      fontSize: 13,
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    // Location & Address
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on_outlined,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            room.address,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.battambang(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
-                            ),
+                            );
+                          },
+                        )
+                      : Container(
+                          color: Colors.grey.shade200,
+                          child: const Icon(
+                            Icons.apartment_outlined,
+                            size: 40,
+                            color: Colors.grey,
                           ),
                         ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    // Rating & Price (Exact format)
-                    Row(
-                      children: [
-                        const Icon(Icons.star, size: 16, color: Colors.amber),
-                        const SizedBox(width: 4),
-                        Text(
-                          room.rating.toStringAsFixed(1),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '\$${room.price.toStringAsFixed(0)}/month',
-                          style: GoogleFonts.battambang(
-                            color: AppColors.primary,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 6),
-
-                    // Category tag & Status badge
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE9ECFF),
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                          child: Text(
-                            room.category.name,
-                            style: GoogleFonts.battambang(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isAvailable
-                                ? const Color(0xFFDCFCE7)
-                                : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                          child: Text(
-                            isAvailable ? 'ទំនេរ' : 'បានជួល',
-                            style: GoogleFonts.battambang(
-                              color: isAvailable
-                                  ? const Color(0xFF16A34A)
-                                  : const Color(0xFF64748B),
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
               ),
-            ),
-          ],
+
+              // Content details
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title & Owner Popup Menu
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              room.name,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.battambang(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.neutral,
+                              ),
+                            ),
+                          ),
+                          PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            icon: const Icon(
+                              Icons.more_vert_rounded,
+                              size: 20,
+                              color: Color(0xFF64748B),
+                            ),
+                            onSelected: (val) {
+                              if (val == 'details') {
+                                Get.to(() => Detailscreen(id: room.id));
+                              } else if (val == 'rent_out') {
+                                _handleRentOut(room.id);
+                              } else if (val == 'release') {
+                                _handleReleaseUnit(room.id);
+                              } else if (val == 'delete') {
+                                _confirmDeleteRoom(room.id, room.name);
+                              }
+                            },
+                            itemBuilder: (ctx) => [
+                              PopupMenuItem(
+                                value: 'details',
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.visibility_outlined,
+                                      size: 18,
+                                      color: AppColors.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'មើលព័ត៌មានលម្អិត',
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'rent_out',
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.person_remove_outlined,
+                                      size: 18,
+                                      color: Colors.orange,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'ជួលបន្ទប់ចេញ (-1)',
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'release',
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.person_add_outlined,
+                                      size: 18,
+                                      color: Colors.green,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'ដោះលែងបន្ទប់ (+1)',
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const PopupMenuDivider(),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.delete_outline,
+                                      size: 18,
+                                      color: Colors.red,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'លុបបន្ទប់',
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 13,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      // Location & Address
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              room.address,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.battambang(
+                                fontSize: 13,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      // Rating & Price (Exact format)
+                      Row(
+                        children: [
+                          const Icon(Icons.star, size: 16, color: Colors.amber),
+                          const SizedBox(width: 4),
+                          Text(
+                            room.rating.toStringAsFixed(1),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '\$${room.price.toStringAsFixed(0)}/month',
+                            style: GoogleFonts.battambang(
+                              color: AppColors.primary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      // Category tag & Status badge
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE9ECFF),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Text(
+                              room.category.name,
+                              style: GoogleFonts.battambang(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isAvailable
+                                  ? const Color(0xFFDCFCE7)
+                                  : const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Text(
+                              isAvailable ? 'ទំនេរ' : 'បានជួល',
+                              style: GoogleFonts.battambang(
+                                color: isAvailable
+                                    ? const Color(0xFF16A34A)
+                                    : const Color(0xFF64748B),
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      // Booking Deposit Banner if room has a paid booking
+                      if (room.latestBooking != null) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFECFDF5),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFA7F3D0)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.verified_rounded,
+                                size: 16,
+                                color: Color(0xFF059669),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'បានកក់ប្រាក់ \$${room.latestBooking!.amount.toStringAsFixed(0)}',
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFF065F46),
+                                      ),
+                                    ),
+                                    if (room.latestBooking!.customerName !=
+                                            null &&
+                                        room
+                                            .latestBooking!
+                                            .customerName!
+                                            .isNotEmpty)
+                                      Text(
+                                        'កក់ដោយ: ${room.latestBooking!.customerName}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.battambang(
+                                          fontSize: 11,
+                                          color: const Color(0xFF047857),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              if (room.latestBooking!.customerPhone != null &&
+                                  room.latestBooking!.customerPhone!.isNotEmpty)
+                                InkWell(
+                                  onTap: () async {
+                                    final uri = Uri.parse(
+                                      'tel:${room.latestBooking!.customerPhone}',
+                                    );
+                                    if (await canLaunchUrl(uri)) {
+                                      await launchUrl(uri);
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFF059669,
+                                      ).withValues(alpha: 0.12),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.phone_rounded,
+                                      size: 16,
+                                      color: Color(0xFF059669),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

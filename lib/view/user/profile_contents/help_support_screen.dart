@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/view/chatbotScreen.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -51,22 +52,13 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
-        Get.snackbar(
+        AppAlert.error(
           'មិនអាចបើកបាន',
           'មិនអាចបើកតំណភ្ជាប់នេះបានទេ: $urlString',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red.shade600,
-          colorText: Colors.white,
         );
       }
     } catch (_) {
-      Get.snackbar(
-        'បរាជ័យ',
-        'មានបញ្ហាក្នុងការបើកតំណភ្ជាប់',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade600,
-        colorText: Colors.white,
-      );
+      AppAlert.error('បរាជ័យ', 'មានបញ្ហាក្នុងការបើកតំណភ្ជាប់');
     }
   }
 
@@ -91,12 +83,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   Future<void> _submitFeedback() async {
     final text = _feedbackCtrl.text.trim();
     if (text.isEmpty) {
-      Get.snackbar(
+      AppAlert.warning(
         'សូមបញ្ចូលព័ត៌មាន',
         'សូមសរសេរមតិកែលម្អ ឬបញ្ហាដែលអ្នកបានជួបប្រទះជាមុនសិន',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.orange.shade700,
-        colorText: Colors.white,
       );
       return;
     }
@@ -109,13 +98,9 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         _isSubmitting = false;
         _feedbackCtrl.clear();
       });
-      Get.snackbar(
+      AppAlert.success(
         'សូមអរគុណ!',
         'មតិកែលម្អរបស់អ្នកត្រូវបានផ្ញើជូនក្រុមការងារដោយជោគជ័យ',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade600,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
       );
     }
   }

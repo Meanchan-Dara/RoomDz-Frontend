@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class SearchPreferencesScreen extends StatefulWidget {
@@ -60,15 +61,7 @@ class _SearchPreferencesScreenState extends State<SearchPreferencesScreen> {
     if (mounted) {
       setState(() => _isLoading = false);
       Get.back();
-      Get.snackbar(
-        'ជោគជ័យ',
-        'ចំណូលចិត្តស្វែងរករបស់អ្នកត្រូវបានរក្សាទុក',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade600,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-      );
+      AppAlert.success('ជោគជ័យ', 'ចំណូលចិត្តស្វែងរករបស់អ្នកត្រូវបានរក្សាទុក');
     }
   }
 
@@ -83,15 +76,7 @@ class _SearchPreferencesScreenState extends State<SearchPreferencesScreen> {
       _selectedAmenities.addAll(['ម៉ាស៊ីនត្រជាក់', 'វ៉ាយហ្វាយឥតគិតថ្លៃ']);
       _notifyNewMatches = true;
     });
-    Get.snackbar(
-      'កំណត់ឡើងវិញ',
-      'បានកំណត់ចំណូលចិត្តស្វែងរកទៅទម្រង់ដើម',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.blueGrey.shade700,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 2),
-    );
+    AppAlert.info('កំណត់ឡើងវិញ', 'បានកំណត់ចំណូលចិត្តស្វែងរកទៅទម្រង់ដើម');
   }
 
   @override

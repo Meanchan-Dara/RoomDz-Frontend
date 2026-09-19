@@ -39,6 +39,8 @@ class Data {
   final String name;
   final String status;
   final num price;
+  final num? depositPrice;
+  final String depositCurrency;
   final double rating;
   final int reviewsCount;
   final String address;
@@ -63,6 +65,8 @@ class Data {
     required this.name,
     required this.status,
     required this.price,
+    this.depositPrice,
+    this.depositCurrency = 'USD',
     required this.rating,
     required this.reviewsCount,
     required this.address,
@@ -98,6 +102,12 @@ class Data {
     price: json["price"] is num
         ? (json["price"] as num)
         : (num.tryParse(json["price"]?.toString() ?? '0') ?? 0),
+    depositPrice: json["deposit_price"] is num
+        ? (json["deposit_price"] as num)
+        : num.tryParse(json["deposit_price"]?.toString() ?? ''),
+    depositCurrency: (json["deposit_currency"] ?? 'USD')
+        .toString()
+        .toUpperCase(),
     rating: json["rating"] is num
         ? (json["rating"] as num).toDouble()
         : (double.tryParse(json["rating"]?.toString() ?? '0.0') ?? 0.0),
@@ -189,6 +199,8 @@ class Data {
     "name": name,
     "status": status,
     "price": price,
+    if (depositPrice != null) "deposit_price": depositPrice,
+    "deposit_currency": depositCurrency,
     "rating": rating,
     "reviews_count": reviewsCount,
     "address": address,
@@ -216,6 +228,8 @@ class Landlord {
   final bool isVerified;
   final String? locationTag;
   final String? telegram;
+  final String? bakongAccountId;
+  final String? bakongMerchantName;
 
   Landlord({
     required this.id,
@@ -226,6 +240,8 @@ class Landlord {
     this.isVerified = false,
     this.locationTag,
     this.telegram,
+    this.bakongAccountId,
+    this.bakongMerchantName,
   });
 
   factory Landlord.fromJson(Map<String, dynamic> json) => Landlord(
@@ -239,6 +255,8 @@ class Landlord {
     isVerified: json["is_verified"] == true,
     locationTag: json["location_tag"]?.toString(),
     telegram: json["telegram"]?.toString(),
+    bakongAccountId: json["bakong_account_id"]?.toString(),
+    bakongMerchantName: json["bakong_merchant_name"]?.toString(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -250,6 +268,8 @@ class Landlord {
     "is_verified": isVerified,
     "location_tag": locationTag,
     "telegram": telegram,
+    "bakong_account_id": bakongAccountId,
+    "bakong_merchant_name": bakongMerchantName,
   };
 }
 

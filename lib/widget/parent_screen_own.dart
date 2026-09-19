@@ -43,15 +43,15 @@ class ParentScreenOwn extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
-            icon: const Icon(Icons.home),
+            icon: const Icon(Icons.meeting_room_rounded),
             title: 'បន្ទប់របស់ខ្ញុំ',
-            inactiveIcon: const Icon(Icons.home_outlined),
+            inactiveIcon: const Icon(Icons.meeting_room_outlined),
             activeForegroundColor: AppColors.primary,
             inactiveForegroundColor: Colors.grey,
           ),
         ),
 
-        // post room
+        // viewing requests (សំណើណាត់ជួប)
         PersistentTabConfig(
           screen: ViewingRequestScreen(),
           item: ItemConfig(
@@ -59,10 +59,14 @@ class ParentScreenOwn extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
-            icon: const Icon(Icons.location_on, size: 25, color: Colors.white),
+            icon: const Icon(
+              Icons.calendar_month_rounded,
+              size: 25,
+              color: Colors.white,
+            ),
             title: 'សំណើណាត់ជួប',
             inactiveIcon: const Icon(
-              Icons.location_on_outlined,
+              Icons.calendar_month_outlined,
               size: 25,
               color: Colors.white,
             ),

@@ -90,6 +90,7 @@ class OwnerRoomService {
     required String name,
     required double price,
     required String address,
+    double? depositPrice,
     int? categoryId,
     String? type,
     String? pricePeriod,
@@ -118,6 +119,10 @@ class OwnerRoomService {
       formData.fields.add(MapEntry('name', name.trim()));
       formData.fields.add(MapEntry('price', price.toString()));
       formData.fields.add(MapEntry('address', address.trim()));
+
+      if (depositPrice != null && depositPrice >= 0) {
+        formData.fields.add(MapEntry('deposit_price', depositPrice.toString()));
+      }
 
       if (categoryId != null && categoryId > 0) {
         formData.fields.add(MapEntry('category_id', categoryId.toString()));

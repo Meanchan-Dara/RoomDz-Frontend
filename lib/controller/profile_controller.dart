@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 
 class ProfileController extends GetxController {
   final ImagePicker _picker = ImagePicker();
@@ -105,11 +106,7 @@ class ProfileController extends GetxController {
         await _storage.write(key: 'avatar_path', value: picked.path);
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'មិនអាចជ្រើសរើសរូបភាពបានទេ',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', 'មិនអាចជ្រើសរើសរូបភាពបានទេ');
     }
   }
 

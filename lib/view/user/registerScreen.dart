@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/view/user/signInScreen.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class Registerscreen extends StatefulWidget {
@@ -224,19 +225,17 @@ class _RegisterscreenState extends State<Registerscreen> {
                         : () async {
                             if (_passwordController.text !=
                                 _confirmPasswordController.text) {
-                              Get.snackbar(
-                                'Error',
-                                'Passwords do not match',
-                                snackPosition: SnackPosition.TOP,
+                              AppAlert.warning(
+                                'ពាក្យសម្ងាត់មិនត្រូវគ្នា',
+                                'សូមបញ្ជាក់ពាក្យសម្ងាត់ឱ្យបានត្រឹមត្រូវ',
                               );
                               return;
                             }
 
                             if (!_isAgreed) {
-                              Get.snackbar(
-                                'Error',
-                                'Please agree to the terms',
-                                snackPosition: SnackPosition.TOP,
+                              AppAlert.warning(
+                                'លក្ខខណ្ឌប្រើប្រាស់',
+                                'សូមយល់ព្រមតាមលក្ខខណ្ឌប្រើប្រាស់ជាមុនសិន',
                               );
                               return;
                             }
@@ -253,27 +252,18 @@ class _RegisterscreenState extends State<Registerscreen> {
                                 phone: _phoneController.text.trim(),
                               );
 
-                              Get.snackbar(
-                                'Success',
-                                'Register successful',
-                                snackPosition: SnackPosition.TOP,
+                              AppAlert.success(
+                                'ជោគជ័យ',
+                                'ការចុះឈ្មោះបានជោគជ័យ!',
                               );
                               Get.off(() => const Signinscreen());
                             } on DioException catch (e) {
                               final message =
                                   e.response?.data?['message'] ?? e.message;
                               log('REGISTER ERROR: $message');
-                              Get.snackbar(
-                                'Register Failed',
-                                message.toString(),
-                                snackPosition: SnackPosition.TOP,
-                              );
+                              AppAlert.error('បរាជ័យ', message.toString());
                             } catch (e) {
-                              Get.snackbar(
-                                'Error',
-                                e.toString(),
-                                snackPosition: SnackPosition.TOP,
-                              );
+                              AppAlert.error('បរាជ័យ', e.toString());
                             } finally {
                               if (mounted) {
                                 setState(() {

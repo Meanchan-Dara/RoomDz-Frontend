@@ -58,6 +58,9 @@ class Datum {
   final String name;
   final String type;
   final int price;
+  final double? depositPrice;
+  final String depositCurrency;
+  final LatestBooking? latestBooking;
   final String status;
   final double rating;
   final int reviewsCount;
@@ -75,6 +78,9 @@ class Datum {
     required this.name,
     required this.type,
     required this.price,
+    this.depositPrice,
+    this.depositCurrency = 'USD',
+    this.latestBooking,
     required this.status,
     required this.rating,
     required this.reviewsCount,
@@ -101,6 +107,18 @@ class Datum {
     price: (json["price"] is num)
         ? (json["price"] as num).toInt()
         : (int.tryParse(json["price"]?.toString() ?? '0') ?? 0),
+    depositPrice: (json["deposit_price"] is num)
+        ? (json["deposit_price"] as num).toDouble()
+        : double.tryParse(json["deposit_price"]?.toString() ?? ''),
+    depositCurrency: (json["deposit_currency"] ?? 'USD')
+        .toString()
+        .toUpperCase(),
+    latestBooking:
+        json["latest_booking"] != null && json["latest_booking"] is Map
+        ? LatestBooking.fromJson(
+            Map<String, dynamic>.from(json["latest_booking"]),
+          )
+        : null,
     status: (json["status"] ?? 'Available').toString(),
     rating: (json["rating"] is num)
         ? (json["rating"] as num).toDouble()
@@ -255,5 +273,35 @@ class Link {
     "url": url,
     "label": label,
     "active": active,
+  };
+}
+
+class LatestBooking {
+  final String? customerName;
+  final String? customerPhone;
+  final double amount;
+  final String? paidAt;
+
+  LatestBooking({
+    this.customerName,
+    this.customerPhone,
+    required this.amount,
+    this.paidAt,
+  });
+
+  factory LatestBooking.fromJson(Map<String, dynamic> json) => LatestBooking(
+    customerName: json['customer_name']?.toString(),
+    customerPhone: json['customer_phone']?.toString(),
+    amount: (json['amount'] is num)
+        ? (json['amount'] as num).toDouble()
+        : (double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0),
+    paidAt: json['paid_at']?.toString(),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "customer_name": customerName,
+    "customer_phone": customerPhone,
+    "amount": amount,
+    "paid_at": paidAt,
   };
 }

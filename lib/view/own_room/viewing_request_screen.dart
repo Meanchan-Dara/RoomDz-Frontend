@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/view_quest_model.dart';
 import 'package:roomdz_frontend/service/viewing_request_service.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
 
 class ViewingRequestScreen extends StatefulWidget {
@@ -54,18 +54,10 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
     setState(() => _actionId = id);
     try {
       await _service.confirmViewingRequest(id);
-      Get.snackbar(
-        'ជោគជ័យ',
-        'បានយល់ព្រមសំណើររួចរាល់',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.success('ជោគជ័យ', 'បានយល់ព្រមសំណើររួចរាល់');
       await _fetchRequests();
     } catch (e) {
-      Get.snackbar(
-        'បរាជ័យ',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _actionId = null);
     }
@@ -75,18 +67,10 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
     setState(() => _actionId = id);
     try {
       await _service.rejectViewingRequest(id);
-      Get.snackbar(
-        'ជោគជ័យ',
-        'បានបដិសេធសំណើររួចរាល់',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.success('ជោគជ័យ', 'បានបដិសេធសំណើររួចរាល់');
       await _fetchRequests();
     } catch (e) {
-      Get.snackbar(
-        'បរាជ័យ',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _actionId = null);
     }

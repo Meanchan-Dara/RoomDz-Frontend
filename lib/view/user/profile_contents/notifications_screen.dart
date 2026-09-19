@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 
 enum NotificationType { request, payment, alert, system }
 
@@ -106,15 +107,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         n.isRead = true;
       }
     });
-    Get.snackbar(
-      'ជោគជ័យ',
-      'បានសម្គាល់ការជូនដំណឹងទាំងអស់ថាបានអាន',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green.shade600,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 2),
-    );
+    AppAlert.success('ជោគជ័យ', 'បានសម្គាល់ការជូនដំណឹងទាំងអស់ថាបានអាន');
   }
 
   void _deleteNotification(String id) {

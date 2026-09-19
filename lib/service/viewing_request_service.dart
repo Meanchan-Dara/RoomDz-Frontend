@@ -117,7 +117,7 @@ class ViewingRequestService {
         '/owner/viewing-requests',
         queryParameters: {
           if (status != null && status.isNotEmpty) 'status': status,
-          if (roomId != null) 'room_id': roomId,
+          'room_id': ?roomId,
         },
       );
 

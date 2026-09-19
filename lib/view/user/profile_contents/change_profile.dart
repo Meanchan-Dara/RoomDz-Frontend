@@ -10,6 +10,7 @@ import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class ChangeProfile extends StatefulWidget {
@@ -106,11 +107,7 @@ class _ChangeProfileState extends State<ChangeProfile> {
         });
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'មិនអាចជ្រើសរើសរូបភាពបានទេ',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', 'មិនអាចជ្រើសរើសរូបភាពបានទេ');
     }
   }
 
@@ -189,16 +186,12 @@ class _ChangeProfileState extends State<ChangeProfile> {
     final bakongMerchant = _bakongMerchantCtrl.text.trim();
 
     if (name.isEmpty) {
-      Get.snackbar('កំហុស', 'សូមបញ្ចូលឈ្មោះ', snackPosition: SnackPosition.TOP);
+      AppAlert.warning('កំហុស', 'សូមបញ្ចូលឈ្មោះ');
       return;
     }
 
     if (email.isEmpty) {
-      Get.snackbar(
-        'កំហុស',
-        'សូមបញ្ចូលអ៊ីមែល',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.warning('កំហុស', 'សូមបញ្ចូលអ៊ីមែល');
       return;
     }
 
@@ -223,27 +216,10 @@ class _ChangeProfileState extends State<ChangeProfile> {
 
       if (mounted) {
         Get.back(result: true);
-        Get.snackbar(
-          'ជោគជ័យ',
-          'បានកែប្រែប្រវត្តិរូបដោយជោគជ័យ',
-          backgroundColor: const Color(0xFFDCFCE7),
-          colorText: const Color(0xFF16A34A),
-          icon: const Icon(
-            Icons.check_circle_rounded,
-            color: Color(0xFF16A34A),
-          ),
-          snackPosition: SnackPosition.TOP,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 12,
-          duration: const Duration(seconds: 3),
-        );
+        AppAlert.success('ជោគជ័យ', 'បានកែប្រែប្រវត្តិរូបដោយជោគជ័យ');
       }
     } catch (e) {
-      Get.snackbar(
-        'បរាជ័យ',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

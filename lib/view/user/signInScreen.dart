@@ -6,6 +6,7 @@ import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/widget/parentScreen.dart';
 import 'package:roomdz_frontend/widget/parent_screen_own.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 import 'package:roomdz_frontend/view/user/registerScreen.dart';
 
@@ -162,11 +163,7 @@ class _SigninscreenState extends State<Signinscreen> {
                         } on DioException catch (e) {
                           final msg =
                               e.response?.data?['message'] ?? 'Login failed';
-                          Get.snackbar(
-                            'Error',
-                            msg,
-                            snackPosition: SnackPosition.TOP,
-                          );
+                          AppAlert.error('បរាជ័យ', msg);
                         } finally {
                           if (mounted) setState(() => isLoading = false);
                         }

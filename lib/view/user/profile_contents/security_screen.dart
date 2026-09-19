@@ -7,6 +7,7 @@ import 'package:roomdz_frontend/service/api_client.dart';
 import 'package:roomdz_frontend/service/auth_service.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 
 class SecurityScreen extends StatefulWidget {
@@ -299,26 +300,17 @@ class _SecurityScreenState extends State<SecurityScreen> {
                                     if (ctx.mounted) {
                                       Navigator.pop(ctx);
                                     }
-                                    Get.snackbar(
+                                    AppAlert.success(
                                       'ជោគជ័យ',
                                       res.data?['message'] ??
                                           'ពាក្យសម្ងាត់ត្រូវបានផ្លាស់ប្តូរដោយជោគជ័យ',
-                                      backgroundColor: Colors.green.shade600,
-                                      colorText: Colors.white,
-                                      snackPosition: SnackPosition.TOP,
                                     );
                                   } on DioException catch (e) {
                                     final msg =
                                         e.response?.data?['message'] ??
                                         e.message ??
                                         'ការប្តូរពាក្យសម្ងាត់បានបរាជ័យ';
-                                    Get.snackbar(
-                                      'កំហុស',
-                                      msg,
-                                      backgroundColor: Colors.red.shade600,
-                                      colorText: Colors.white,
-                                      snackPosition: SnackPosition.TOP,
-                                    );
+                                    AppAlert.error('កំហុស', msg);
                                   } finally {
                                     setSheetState(() => isSubmitting = false);
                                   }

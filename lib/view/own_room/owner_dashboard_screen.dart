@@ -6,6 +6,7 @@ import 'package:roomdz_frontend/model/view_quest_model.dart';
 import 'package:roomdz_frontend/service/rooms/owner_room_service.dart';
 import 'package:roomdz_frontend/service/viewing_request_service.dart';
 import 'package:roomdz_frontend/view/own_room/post_room_screen.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/build_stats_grid.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
 
@@ -77,11 +78,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
         isLoading = false;
       });
 
-      Get.snackbar(
-        'Error',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
@@ -98,21 +95,13 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
       if (!mounted) return;
 
-      Get.snackbar(
-        'ជោគជ័យ',
-        'បានយល់ព្រមសំណើណាត់ជួប',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.success('ជោគជ័យ', 'បានយល់ព្រមសំណើណាត់ជួប');
 
       await _loadViewingRequests();
     } catch (e) {
       if (!mounted) return;
 
-      Get.snackbar(
-        'Error',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) {
         setState(() {
@@ -135,21 +124,13 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
       if (!mounted) return;
 
-      Get.snackbar(
-        'ជោគជ័យ',
-        'បានបដិសេធសំណើណាត់ជួប',
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.success('ជោគជ័យ', 'បានបដិសេធសំណើណាត់ជួប');
 
       await _loadViewingRequests();
     } catch (e) {
       if (!mounted) return;
 
-      Get.snackbar(
-        'Error',
-        e.toString().replaceFirst('Exception: ', ''),
-        snackPosition: SnackPosition.TOP,
-      );
+      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) {
         setState(() {

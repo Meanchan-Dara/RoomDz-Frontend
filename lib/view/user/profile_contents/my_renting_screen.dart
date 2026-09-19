@@ -6,6 +6,7 @@ import 'package:roomdz_frontend/const/colors/appColors.dart';
 import 'package:roomdz_frontend/model/view_quest_model.dart';
 import 'package:roomdz_frontend/service/viewing_request_service.dart';
 import 'package:roomdz_frontend/view/user/profile_contents/my_requests_screen.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MyRentingScreen extends StatefulWidget {
@@ -495,12 +496,9 @@ class _MyRentingScreenState extends State<MyRentingScreen> {
                           Expanded(
                             child: ElevatedButton.icon(
                               onPressed: () {
-                                Get.snackbar(
+                                AppAlert.success(
                                   'ទូទាត់ប្រាក់',
                                   'មុខងារបង់ប្រាក់តាម Bakong KHQR សម្រាប់ខែនេះបានរួចរាល់',
-                                  snackPosition: SnackPosition.TOP,
-                                  backgroundColor: const Color(0xFF10B981),
-                                  colorText: Colors.white,
                                 );
                               },
                               icon: const Icon(

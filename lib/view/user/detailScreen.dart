@@ -15,6 +15,7 @@ import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
 import 'package:roomdz_frontend/widget/skeleton/detail_screen_skeleton.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
+import 'package:roomdz_frontend/view/payment/bakong_payment_dialog.dart';
 
 class Detailscreen extends StatefulWidget {
   final int id;
@@ -295,7 +296,13 @@ class _DetailscreenState extends State<Detailscreen> {
                             _buildInfoRow(
                               icon: Icons.key_outlined,
                               label: "ប្រាក់កក់",
-                              value: room.roomInformation.deposit,
+                              value:
+                                  room.depositPrice != null &&
+                                      room.depositPrice! > 0
+                                  ? (room.depositCurrency == 'KHR'
+                                        ? "${room.depositPrice!.toInt()} ៛ (${room.roomInformation.deposit})"
+                                        : "\$${room.depositPrice} (${room.roomInformation.deposit})")
+                                  : room.roomInformation.deposit,
                             ),
                           ],
                         ),
@@ -685,9 +692,9 @@ class _DetailscreenState extends State<Detailscreen> {
             ],
           ),
 
-          // --- ADDED BOTTOM SHEET / BOTTOM NAVIGATION BAR ---
+          // --- ADDED BOTTOM SHEET / BOTTOM NAVIGATION BAR WITH 2 SIDE-BY-SIDE BUTTONS ---
           bottomNavigationBar: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
@@ -700,65 +707,175 @@ class _DetailscreenState extends State<Detailscreen> {
             ),
             child: SafeArea(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Leading: Price Info
+                  // Leading: Price & Deposit Info
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'តម្លៃសរុប',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.baseline,
                         textBaseline: TextBaseline.alphabetic,
                         children: [
                           Text(
                             "\$${room.price}",
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppColors.primary,
-                              fontSize: 22,
+                              fontSize: 20,
                             ),
                           ),
                           const Text(
-                            ' / មួយខែ',
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                            '/ខែ',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
                         ],
                       ),
+                      if (room.depositPrice != null && room.depositPrice! > 0)
+                        Container(
+                          margin: const EdgeInsets.only(top: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            room.depositCurrency == 'KHR'
+                                ? 'កក់ ${room.depositPrice!.toInt()}៛'
+                                : 'កក់ \$${room.depositPrice}',
+                            style: GoogleFonts.battambang(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF15803D),
+                            ),
+                          ),
+                        )
+                      else
+                        Text(
+                          'តម្លៃសរុប',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
                     ],
                   ),
 
-                  // Action: Send Request Button
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      _showSendRequestDialog(context, room.name);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    icon: const Icon(Icons.send, size: 18),
-                    label: const Text(
-                      'ផ្ញើសំណើ',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  const SizedBox(width: 12),
+
+                  // Actions: Two side-by-side buttons
+                  Expanded(
+                    child: Row(
+                      children: [
+                        // Button 1: Request Viewing
+                        Expanded(
+                          child: SizedBox(
+                            height: 44,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                _showSendRequestDialog(context, room.name);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                disabledBackgroundColor: AppColors.primary,
+                                disabledForegroundColor: Colors.white,
+                                foregroundColor: Colors.white,
+                                elevation: 1,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.calendar_month_outlined,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      'ស្នើសុំមើល',
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        // Button 2: Direct Bakong KHQR Payment
+                        Expanded(
+                          child: SizedBox(
+                            height: 44,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                BakongPaymentDialog.show(
+                                  context: context,
+                                  room: room,
+                                  onPaymentCompleted: () {
+                                    setState(() {
+                                      _roomDetailFuture = _roomServer
+                                          .getRoomsDetail(widget.id);
+                                    });
+                                  },
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(
+                                  0xFFE1251B,
+                                ), // Official Bakong Red
+                                disabledBackgroundColor: const Color(
+                                  0xFFE1251B,
+                                ),
+                                disabledForegroundColor: Colors.white,
+                                foregroundColor: Colors.white,
+                                elevation: 1,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.qr_code_rounded, size: 17),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      'កក់ KHQR',
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

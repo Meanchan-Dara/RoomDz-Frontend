@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/const/colors/appColors.dart';
+import 'package:roomdz_frontend/widget/app_alert.dart';
 
 class LanguageScreen extends StatefulWidget {
   const LanguageScreen({super.key});
@@ -34,15 +35,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
     });
 
     final langName = code == 'km' ? 'ភាសាខ្មែរ' : 'English';
-    Get.snackbar(
-      'ជោគជ័យ',
-      'បានប្តូរភាសាទៅជា $langName',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green.shade600,
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      duration: const Duration(seconds: 2),
-    );
+    AppAlert.success('ជោគជ័យ', 'បានប្តូរភាសាទៅជា $langName');
   }
 
   @override
