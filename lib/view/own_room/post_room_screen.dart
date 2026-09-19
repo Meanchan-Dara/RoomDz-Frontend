@@ -843,11 +843,15 @@ class _PostRoomScreenState extends State<PostRoomScreen> {
                     items: const [
                       DropdownMenuItem(
                         value: 'AVAILABLE NOW',
-                        child: Text('ទំនេរ (AVAILABLE NOW)'),
+                        child: Text('ទំនេរ (AVAILABLE)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'BOOKED',
+                        child: Text('ត្រូវបានកក់ (BOOKED)'),
                       ),
                       DropdownMenuItem(
                         value: 'OCCUPIED',
-                        child: Text('បានជួលហើយ (OCCUPIED)'),
+                        child: Text('ត្រូវបានជួល (OCCUPIED)'),
                       ),
                     ],
                     onChanged: (val) {

@@ -15,6 +15,7 @@ import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
 import 'package:roomdz_frontend/widget/skeleton/home_screen_skeleton.dart';
 import 'package:roomdz_frontend/controller/favorite_controller.dart';
 import 'package:roomdz_frontend/widget/home_banner_slider.dart';
+import 'package:roomdz_frontend/widget/room_status_badge.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -179,10 +180,13 @@ class _HomescreenState extends State<Homescreen> {
             ),
 
             locationController.isGettingCurrentLocation.value
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                ? Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Icon(
+                      Icons.my_location,
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                      size: 22,
+                    ),
                   )
                 : IconButton(
                     onPressed: () {
@@ -331,9 +335,6 @@ class RoomCard extends StatelessWidget {
                           return Container(
                             height: 180,
                             color: Colors.grey.shade200,
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
                           );
                         },
                         errorWidget: (context, url, error) {
@@ -492,29 +493,40 @@ class RoomCard extends StatelessWidget {
           Positioned(
             top: 12,
             left: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 14),
-
-                  const SizedBox(width: 4),
-
-                  Text(
-                    room.rating.toStringAsFixed(1),
-                    style: TextStyle(
-                      color: AppColors.surface,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RoomStatusBadge(
+                  status: room.status,
+                  hasLatestBooking: room.latestBooking != null,
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                ],
-              ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        room.rating.toStringAsFixed(1),
+                        style: TextStyle(
+                          color: AppColors.surface,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           //favorate icon

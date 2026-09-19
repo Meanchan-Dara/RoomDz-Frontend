@@ -3,6 +3,7 @@
 //     final roomDetialModel = roomDetialModelFromJson(jsonString);
 
 import 'dart:convert';
+import 'package:roomdz_frontend/model/roomModel.dart';
 
 RoomDetialModel roomDetialModelFromJson(String str) =>
     RoomDetialModel.fromJson(json.decode(str));
@@ -36,6 +37,7 @@ class Data {
   final int? categoryId;
   final Category? category;
   final Landlord? landlord;
+  final LatestBooking? latestBooking;
   final String name;
   final String status;
   final num price;
@@ -62,6 +64,7 @@ class Data {
     this.categoryId,
     this.category,
     this.landlord,
+    this.latestBooking,
     required this.name,
     required this.status,
     required this.price,
@@ -96,6 +99,12 @@ class Data {
         : null,
     landlord: json["landlord"] != null && json["landlord"] is Map
         ? Landlord.fromJson(Map<String, dynamic>.from(json["landlord"]))
+        : null,
+    latestBooking:
+        json["latest_booking"] != null && json["latest_booking"] is Map
+        ? LatestBooking.fromJson(
+            Map<String, dynamic>.from(json["latest_booking"]),
+          )
         : null,
     name: (json["name"] ?? 'Room').toString(),
     status: (json["status"] ?? 'AVAILABLE NOW').toString(),
@@ -171,6 +180,7 @@ class Data {
     categoryId: null,
     category: null,
     landlord: null,
+    latestBooking: null,
     name: 'Unknown',
     status: 'Unavailable',
     price: 0,
@@ -196,6 +206,7 @@ class Data {
     if (categoryId != null) "category_id": categoryId,
     if (category != null) "category": category!.toJson(),
     if (landlord != null) "landlord": landlord!.toJson(),
+    if (latestBooking != null) "latest_booking": latestBooking!.toJson(),
     "name": name,
     "status": status,
     "price": price,

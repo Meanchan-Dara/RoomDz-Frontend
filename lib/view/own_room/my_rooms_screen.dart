@@ -9,6 +9,8 @@ import 'package:roomdz_frontend/view/own_room/post_room_screen.dart';
 import 'package:roomdz_frontend/view/user/detailScreen.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
 import 'package:roomdz_frontend/widget/app_alert.dart';
+import 'package:roomdz_frontend/widget/room_status_badge.dart';
+import 'package:roomdz_frontend/widget/skeleton/home_screen_skeleton.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MyRoomsScreen extends StatefulWidget {
@@ -358,7 +360,11 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        itemCount: 4,
+        itemBuilder: (context, index) => const HomeScreenSkeleton(),
+      );
     }
 
     if (_errorMessage != null) {
@@ -495,10 +501,6 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
 
   // Exact Customer SearchRoomCard format customized for Owner
   Widget _buildOwnerSearchRoomCard(Datum room) {
-    final isAvailable =
-        room.status.toUpperCase() == 'AVAILABLE NOW' ||
-        room.status.toUpperCase() == 'AVAILABLE';
-
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
@@ -523,46 +525,52 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Thumbnail (Exact 120 width layout matching SearchRoomCard)
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                ),
-                child: SizedBox(
-                  width: 120,
-                  child: room.image != null && room.image!.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: room.image!,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) {
-                            return Container(
-                              color: Colors.grey.shade200,
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            );
-                          },
-                          errorWidget: (context, url, error) {
-                            return Container(
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      bottomLeft: Radius.circular(16),
+                    ),
+                    child: SizedBox(
+                      width: 120,
+                      child: room.image != null && room.image!.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: room.image!,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) {
+                                return Container(color: Colors.grey.shade200);
+                              },
+                              errorWidget: (context, url, error) {
+                                return Container(
+                                  color: Colors.grey.shade200,
+                                  child: const Icon(
+                                    Icons.image_not_supported_outlined,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                            )
+                          : Container(
                               color: Colors.grey.shade200,
                               child: const Icon(
-                                Icons.image_not_supported_outlined,
+                                Icons.apartment_outlined,
+                                size: 40,
                                 color: Colors.grey,
                               ),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: Colors.grey.shade200,
-                          child: const Icon(
-                            Icons.apartment_outlined,
-                            size: 40,
-                            color: Colors.grey,
-                          ),
-                        ),
-                ),
+                            ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: RoomStatusBadge(
+                      status: room.status,
+                      hasLatestBooking: room.latestBooking != null,
+                      isCompact: true,
+                    ),
+                  ),
+                ],
               ),
 
               // Content details
@@ -763,27 +771,10 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isAvailable
-                                  ? const Color(0xFFDCFCE7)
-                                  : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(7),
-                            ),
-                            child: Text(
-                              isAvailable ? 'ទំនេរ' : 'បានជួល',
-                              style: GoogleFonts.battambang(
-                                color: isAvailable
-                                    ? const Color(0xFF16A34A)
-                                    : const Color(0xFF64748B),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                          RoomStatusBadge(
+                            status: room.status,
+                            hasLatestBooking: room.latestBooking != null,
+                            isCompact: true,
                           ),
                         ],
                       ),

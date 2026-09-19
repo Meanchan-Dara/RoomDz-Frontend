@@ -6,6 +6,8 @@ import 'package:roomdz_frontend/controller/favorite_controller.dart';
 import 'package:roomdz_frontend/model/roomModel.dart';
 import 'package:roomdz_frontend/service/rooms/room_service.dart';
 import 'package:roomdz_frontend/view/user/detailScreen.dart';
+import 'package:roomdz_frontend/widget/room_status_badge.dart';
+import 'package:roomdz_frontend/widget/skeleton/home_screen_skeleton.dart';
 
 class FavoriteScreen extends StatefulWidget {
   const FavoriteScreen({super.key});
@@ -70,7 +72,14 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
           future: _roomsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+                itemCount: 3,
+                itemBuilder: (context, index) => const HomeScreenSkeleton(),
+              );
             }
             if (snapshot.hasError) {
               return Center(
@@ -237,9 +246,6 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                             return Container(
                               height: 190,
                               color: Colors.grey.shade200,
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
                             );
                           },
                           errorWidget: (context, url, error) {
@@ -268,6 +274,14 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                             ),
                           ),
                         ),
+                ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: RoomStatusBadge(
+                    status: room.status,
+                    hasLatestBooking: room.latestBooking != null,
+                  ),
                 ),
                 Positioned(
                   top: 12,

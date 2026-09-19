@@ -173,12 +173,8 @@ class _HomeBannerSliderState extends State<HomeBannerSlider> {
             CachedNetworkImage(
               imageUrl: banner.imageUrl,
               fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                color: Colors.grey.shade200,
-                child: const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
+              placeholder: (context, url) =>
+                  Container(color: const Color(0xFFE2E8F0)),
               errorWidget: (context, url, error) => Container(
                 color: const Color(0xFF1E293B),
                 child: const Icon(

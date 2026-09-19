@@ -13,6 +13,7 @@ import 'package:roomdz_frontend/service/viewing_request_service.dart';
 import 'package:roomdz_frontend/util/url_util.dart';
 import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/role_badge.dart';
+import 'package:roomdz_frontend/widget/room_status_badge.dart';
 import 'package:roomdz_frontend/widget/skeleton/detail_screen_skeleton.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
 import 'package:roomdz_frontend/view/payment/bakong_payment_dialog.dart';
@@ -47,7 +48,7 @@ class _DetailscreenState extends State<Detailscreen> {
       builder: (context, snapshot) {
         // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: DetailScreenSkeleton());
+          return const DetailScreenSkeleton();
         }
 
         // Error state
@@ -130,26 +131,60 @@ class _DetailscreenState extends State<Detailscreen> {
                 expandedHeight: 320,
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
-                  background: (room.image != null && room.image!.isNotEmpty)
-                      ? Image.network(
-                          room.image!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Center(
-                              child: Icon(Icons.image_not_supported, size: 60),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: Colors.grey.shade200,
-                          child: const Center(
-                            child: Icon(
-                              Icons.image_not_supported,
-                              size: 60,
-                              color: Colors.grey,
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      (room.image != null && room.image!.isNotEmpty)
+                          ? Image.network(
+                              room.image!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    size: 60,
+                                  ),
+                                );
+                              },
+                            )
+                          : Container(
+                              color: Colors.grey.shade200,
+                              child: const Center(
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  size: 60,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: 70,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                Colors.black.withValues(alpha: 0.5),
+                                Colors.transparent,
+                              ],
                             ),
                           ),
                         ),
+                      ),
+                      Positioned(
+                        bottom: 14,
+                        left: 16,
+                        child: RoomStatusBadge(
+                          status: room.status,
+                          hasLatestBooking: room.latestBooking != null,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
@@ -725,179 +760,294 @@ class _DetailscreenState extends State<Detailscreen> {
               ],
             ),
             child: SafeArea(
-              child: Row(
-                children: [
-                  // Leading: Price & Deposit Info
-                  Column(
+              child: Builder(
+                builder: (context) {
+                  final statusType = getRoomStatusType(
+                    room.status,
+                    hasLatestBooking: room.latestBooking != null,
+                  );
+                  final isAvailable = statusType == RoomStatusType.available;
+                  final isBooked = statusType == RoomStatusType.booked;
+                  final isRented = statusType == RoomStatusType.rented;
+
+                  return Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.baseline,
-                        textBaseline: TextBaseline.alphabetic,
-                        children: [
-                          Text(
-                            "\$${room.price}",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                              fontSize: 20,
+                      // Warning notification banner if room is not available
+                      if (!isAvailable)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isBooked
+                                ? const Color(0xFFFEF3C7)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isBooked
+                                  ? const Color(0xFFFDE68A)
+                                  : const Color(0xFFE2E8F0),
                             ),
                           ),
-                          const Text(
-                            '/ខែ',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          child: Row(
+                            children: [
+                              Icon(
+                                isBooked
+                                    ? Icons.lock_clock_rounded
+                                    : Icons.do_not_disturb_on_rounded,
+                                size: 16,
+                                color: isBooked
+                                    ? const Color(0xFFD97706)
+                                    : const Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  isBooked
+                                      ? 'បន្ទប់នេះមានអ្នកកក់ប្រាក់រួចហើយ (មិនអាចកក់ជាន់គ្នាបានទេ)'
+                                      : 'បន្ទប់នេះត្រូវបានជួលរួចរាល់ហើយ (មិនអាចកក់បានទេ)',
+                                  style: GoogleFonts.battambang(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: isBooked
+                                        ? const Color(0xFF92400E)
+                                        : const Color(0xFF475569),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      Row(
+                        children: [
+                          // Leading: Price & Deposit Info
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  Text(
+                                    "\$${room.price}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                  const Text(
+                                    '/ខែ',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (room.depositPrice != null &&
+                                  room.depositPrice! > 0)
+                                Container(
+                                  margin: const EdgeInsets.only(top: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 1.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDCFCE7),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    room.depositCurrency == 'KHR'
+                                        ? 'កក់ ${room.depositPrice!.toInt()}៛'
+                                        : 'កក់ \$${room.depositPrice}',
+                                    style: GoogleFonts.battambang(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF15803D),
+                                    ),
+                                  ),
+                                )
+                              else
+                                Text(
+                                  'តម្លៃសរុប',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                            ],
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          // Actions: Two side-by-side buttons
+                          Expanded(
+                            child: Row(
+                              children: [
+                                // Button 1: Request Viewing
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 44,
+                                    child: ElevatedButton(
+                                      onPressed: isRented
+                                          ? () {
+                                              AppAlert.warning(
+                                                'បន្ទប់ត្រូវបានជួលហើយ',
+                                                'បន្ទប់នេះត្រូវបានជួលរួចរាល់ហើយ មិនអាចស្នើសុំមើលបានទេ។',
+                                              );
+                                            }
+                                          : () {
+                                              _showSendRequestDialog(
+                                                context,
+                                                room.name,
+                                              );
+                                            },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isRented
+                                            ? Colors.grey.shade400
+                                            : AppColors.primary,
+                                        disabledBackgroundColor:
+                                            Colors.grey.shade400,
+                                        disabledForegroundColor: Colors.white,
+                                        foregroundColor: Colors.white,
+                                        elevation: 1,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.calendar_month_outlined,
+                                            size: 16,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              'ស្នើសុំមើល',
+                                              style: GoogleFonts.battambang(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(width: 8),
+
+                                // Button 2: Direct Bakong KHQR Payment
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 44,
+                                    child: ElevatedButton(
+                                      onPressed: !isAvailable
+                                          ? () {
+                                              AppAlert.warning(
+                                                isBooked
+                                                    ? 'បន្ទប់ត្រូវបានកក់រួចហើយ'
+                                                    : 'បន្ទប់ត្រូវបានជួលរួចហើយ',
+                                                isBooked
+                                                    ? 'បន្ទប់នេះត្រូវបានអតិថិជនផ្សេងទៀតកក់ប្រាក់រួចរាល់ហើយ មិនអាចធ្វើការកក់ជាន់គ្នាបានទេ។ សូមពិនិត្យមើលបន្ទប់ទំនេរផ្សេងទៀត។'
+                                                    : 'បន្ទប់នេះត្រូវបានជួលរួចរាល់ហើយ មិនអាចធ្វើការកក់ប្រាក់បានទេ។ សូមពិនិត្យមើលបន្ទប់ទំនេរផ្សេងទៀត។',
+                                              );
+                                            }
+                                          : () {
+                                              BakongPaymentDialog.show(
+                                                context: context,
+                                                room: room,
+                                                onPaymentCompleted: () {
+                                                  setState(() {
+                                                    _roomDetailFuture =
+                                                        _roomServer
+                                                            .getRoomsDetail(
+                                                              widget.id,
+                                                            );
+                                                  });
+                                                },
+                                              );
+                                            },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isBooked
+                                            ? const Color(0xFFF59E0B) // Amber
+                                            : isRented
+                                            ? const Color(0xFF64748B) // Slate
+                                            : const Color(
+                                                0xFFE1251B,
+                                              ), // Official Bakong Red
+                                        foregroundColor: Colors.white,
+                                        elevation: 1,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            isBooked
+                                                ? Icons.lock_clock_rounded
+                                                : isRented
+                                                ? Icons
+                                                      .do_not_disturb_on_rounded
+                                                : Icons.qr_code_rounded,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
+                                            child: Text(
+                                              isBooked
+                                                  ? 'ត្រូវបានកក់'
+                                                  : isRented
+                                                  ? 'ត្រូវបានជួល'
+                                                  : 'កក់ KHQR',
+                                              style: GoogleFonts.battambang(
+                                                fontSize: 12.5,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      if (room.depositPrice != null && room.depositPrice! > 0)
-                        Container(
-                          margin: const EdgeInsets.only(top: 2),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 1.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFDCFCE7),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            room.depositCurrency == 'KHR'
-                                ? 'កក់ ${room.depositPrice!.toInt()}៛'
-                                : 'កក់ \$${room.depositPrice}',
-                            style: GoogleFonts.battambang(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF15803D),
-                            ),
-                          ),
-                        )
-                      else
-                        Text(
-                          'តម្លៃសរុប',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
                     ],
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  // Actions: Two side-by-side buttons
-                  Expanded(
-                    child: Row(
-                      children: [
-                        // Button 1: Request Viewing
-                        Expanded(
-                          child: SizedBox(
-                            height: 44,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                _showSendRequestDialog(context, room.name);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                disabledBackgroundColor: AppColors.primary,
-                                disabledForegroundColor: Colors.white,
-                                foregroundColor: Colors.white,
-                                elevation: 1,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.calendar_month_outlined,
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      'ស្នើសុំមើល',
-                                      style: GoogleFonts.battambang(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        // Button 2: Direct Bakong KHQR Payment
-                        Expanded(
-                          child: SizedBox(
-                            height: 44,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                BakongPaymentDialog.show(
-                                  context: context,
-                                  room: room,
-                                  onPaymentCompleted: () {
-                                    setState(() {
-                                      _roomDetailFuture = _roomServer
-                                          .getRoomsDetail(widget.id);
-                                    });
-                                  },
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(
-                                  0xFFE1251B,
-                                ), // Official Bakong Red
-                                disabledBackgroundColor: const Color(
-                                  0xFFE1251B,
-                                ),
-                                disabledForegroundColor: Colors.white,
-                                foregroundColor: Colors.white,
-                                elevation: 1,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.qr_code_rounded, size: 17),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      'កក់ KHQR',
-                                      style: GoogleFonts.battambang(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ),

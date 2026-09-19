@@ -7,6 +7,8 @@ import 'package:roomdz_frontend/controller/location_controller.dart';
 import 'package:roomdz_frontend/model/roomModel.dart';
 import 'package:roomdz_frontend/view/user/detailScreen.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
+import 'package:roomdz_frontend/widget/room_status_badge.dart';
+import 'package:roomdz_frontend/widget/skeleton/home_screen_skeleton.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -290,7 +292,11 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildRooms() {
     return Obx(() {
       if (categoryFilter.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          itemCount: 4,
+          itemBuilder: (context, index) => const HomeScreenSkeleton(),
+        );
       }
 
       final rooms = categoryFilter.filteredRooms;
@@ -380,46 +386,58 @@ class SearchRoomCard extends StatelessWidget {
         },
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
-              ),
-              child: room.image != null && room.image!.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: room.image!,
-                      width: 120,
-                      height: 140,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) {
-                        return Container(
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
+                  child: room.image != null && room.image!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: room.image!,
+                          width: 120,
+                          height: 140,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) {
+                            return Container(
+                              width: 120,
+                              height: 140,
+                              color: Colors.grey.shade200,
+                            );
+                          },
+                          errorWidget: (context, url, error) {
+                            return Container(
+                              width: 120,
+                              height: 140,
+                              color: Colors.grey.shade200,
+                              child: const Icon(
+                                Icons.image_not_supported_outlined,
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
                           width: 120,
                           height: 140,
                           color: Colors.grey.shade200,
-                          child: const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                          child: const Icon(
+                            Icons.apartment_outlined,
+                            size: 40,
+                            color: Colors.grey,
                           ),
-                        );
-                      },
-                      errorWidget: (context, url, error) {
-                        return Container(
-                          width: 120,
-                          height: 140,
-                          color: Colors.grey.shade200,
-                          child: const Icon(Icons.image_not_supported_outlined),
-                        );
-                      },
-                    )
-                  : Container(
-                      width: 120,
-                      height: 140,
-                      color: Colors.grey.shade200,
-                      child: const Icon(
-                        Icons.apartment_outlined,
-                        size: 40,
-                        color: Colors.grey,
-                      ),
-                    ),
+                        ),
+                ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: RoomStatusBadge(
+                    status: room.status,
+                    hasLatestBooking: room.latestBooking != null,
+                    isCompact: true,
+                  ),
+                ),
+              ],
             ),
 
             Expanded(

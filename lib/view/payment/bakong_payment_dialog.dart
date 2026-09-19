@@ -9,6 +9,7 @@ import 'package:roomdz_frontend/service/payment/payment_service.dart';
 import 'package:roomdz_frontend/util/url_util.dart';
 import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
+import 'package:roomdz_frontend/widget/room_status_badge.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 /// Modal flow for Customer to Owner Direct Payment via Bakong KHQR
@@ -18,6 +19,16 @@ class BakongPaymentDialog {
     required Data room,
     VoidCallback? onPaymentCompleted,
   }) {
+    // 0. Check if room is available for booking
+    final statusType = getRoomStatusType(
+      room.status,
+      hasLatestBooking: room.latestBooking != null,
+    );
+    if (statusType != RoomStatusType.available) {
+      _showRoomUnavailableAlert(context, room, statusType);
+      return;
+    }
+
     // 1. Check if Landlord has configured Bakong Account
     final landlord = room.landlord;
     final bakongId = landlord?.bakongAccountId?.trim();
@@ -35,6 +46,87 @@ class BakongPaymentDialog {
       builder: (_) => _BakongPaymentSheet(
         room: room,
         onPaymentCompleted: onPaymentCompleted,
+      ),
+    );
+  }
+
+  static void _showRoomUnavailableAlert(
+    BuildContext context,
+    Data room,
+    RoomStatusType statusType,
+  ) {
+    final bool isBooked = statusType == RoomStatusType.booked;
+    final String title = isBooked
+        ? 'បន្ទប់ត្រូវបានកក់រួចហើយ'
+        : 'បន្ទប់ត្រូវបានជួលរួចហើយ';
+    final String desc = isBooked
+        ? 'បន្ទប់ "${room.name}" ត្រូវបានអតិថិជនផ្សេងទៀតកក់ប្រាក់រួចរាល់ហើយ ដូច្នេះមិនអាចធ្វើការកក់ជាន់គ្នាបានទេ។ សូមពិនិត្យមើលបន្ទប់ទំនេរផ្សេងទៀត។'
+        : 'បន្ទប់ "${room.name}" ត្រូវបានជួលរួចរាល់ហើយ មិនអាចធ្វើការកក់ប្រាក់បានទេ។ សូមពិនិត្យមើលបន្ទប់ទំនេរផ្សេងទៀត។';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isBooked
+                    ? const Color(0xFFFEF3C7)
+                    : const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                isBooked
+                    ? Icons.lock_clock_rounded
+                    : Icons.do_not_disturb_on_rounded,
+                color: isBooked
+                    ? const Color(0xFFD97706)
+                    : const Color(0xFFDC2626),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.battambang(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: isBooked
+                      ? const Color(0xFF92400E)
+                      : const Color(0xFF991B1B),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          desc,
+          style: GoogleFonts.battambang(
+            fontSize: 13,
+            color: const Color(0xFF475569),
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: Text(
+              'យល់ព្រម',
+              style: GoogleFonts.battambang(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
     );
   }
