@@ -2,6 +2,22 @@ import 'package:dio/dio.dart';
 import 'package:roomdz_frontend/model/payment_model.dart';
 import 'package:roomdz_frontend/service/api_client.dart';
 
+/// Exception thrown when Bakong Open API rate limit (100 requests) is reached
+class BakongLimitException implements Exception {
+  final String message;
+  final int requestCount;
+  final int requestLimit;
+
+  BakongLimitException(
+    this.message, {
+    this.requestCount = 100,
+    this.requestLimit = 100,
+  });
+
+  @override
+  String toString() => message;
+}
+
 class PaymentService {
   final Dio dio;
 
@@ -50,10 +66,40 @@ class PaymentService {
   Future<PaymentCheckStatusResponse> checkStatus(int paymentId) async {
     try {
       final response = await dio.get('/payments/$paymentId/status');
-      return PaymentCheckStatusResponse.fromJson(
+      final result = PaymentCheckStatusResponse.fromJson(
         Map<String, dynamic>.from(response.data),
       );
+
+      if (result.limitReached) {
+        throw BakongLimitException(
+          result.message.isNotEmpty
+              ? result.message
+              : 'ការស្នើសុំទៅកាន់ Bakong ដល់កម្រិតកំណត់ 100 ដងហើយ (Bakong Limit Reached)',
+          requestCount: result.bakongRequestCount,
+          requestLimit: result.bakongRequestLimit,
+        );
+      }
+
+      return result;
     } on DioException catch (e) {
+      final data = e.response?.data;
+      if (e.response?.statusCode == 429 ||
+          (data is Map &&
+              (data['limit_reached'] == true ||
+                  data['status'] == 'limit_reached'))) {
+        final count =
+            (data is Map ? data['bakong_request_count'] : null) ?? 100;
+        final limit =
+            (data is Map ? data['bakong_request_limit'] : null) ?? 100;
+        final msg = (data is Map ? data['message'] : null) ??
+            'ការស្នើសុំទៅកាន់ Bakong ដល់កម្រិតកំណត់ $count/$limit ដងហើយ (Bakong Limit Reached)។';
+        throw BakongLimitException(
+          msg.toString(),
+          requestCount: count is num ? count.toInt() : 100,
+          requestLimit: limit is num ? limit.toInt() : 100,
+        );
+      }
+
       final errorMsg =
           e.response?.data?['message'] ?? 'មិនអាចពិនិត្យស្ថានភាពបង់ប្រាក់បានទេ';
       throw Exception(errorMsg);

@@ -127,6 +127,9 @@ class PaymentCheckStatusResponse {
   final bool isPaid;
   final String message;
   final PaymentCheckStatusData? data;
+  final bool limitReached;
+  final int bakongRequestCount;
+  final int bakongRequestLimit;
 
   PaymentCheckStatusResponse({
     required this.success,
@@ -134,14 +137,37 @@ class PaymentCheckStatusResponse {
     required this.isPaid,
     required this.message,
     this.data,
+    this.limitReached = false,
+    this.bakongRequestCount = 0,
+    this.bakongRequestLimit = 100,
   });
 
   factory PaymentCheckStatusResponse.fromJson(Map<String, dynamic> json) {
+    final isLimit = json['limit_reached'] == true ||
+        json['status'] == 'limit_reached' ||
+        (json['data'] is Map && json['data']['limit_reached'] == true) ||
+        (json['data'] is Map && json['data']['status'] == 'limit_reached');
+
+    final count = json['bakong_request_count'] is num
+        ? (json['bakong_request_count'] as num).toInt()
+        : (json['data'] is Map && json['data']['bakong_request_count'] is num
+            ? (json['data']['bakong_request_count'] as num).toInt()
+            : 0);
+
+    final limit = json['bakong_request_limit'] is num
+        ? (json['bakong_request_limit'] as num).toInt()
+        : (json['data'] is Map && json['data']['bakong_request_limit'] is num
+            ? (json['data']['bakong_request_limit'] as num).toInt()
+            : 100);
+
     return PaymentCheckStatusResponse(
       success: json['success'] == true,
       status: (json['status'] ?? 'pending').toString(),
       isPaid: json['is_paid'] == true,
       message: (json['message'] ?? '').toString(),
+      limitReached: isLimit || (count >= limit && limit > 0),
+      bakongRequestCount: count,
+      bakongRequestLimit: limit,
       data: json['data'] != null && json['data'] is Map
           ? PaymentCheckStatusData.fromJson(
               Map<String, dynamic>.from(json['data']),

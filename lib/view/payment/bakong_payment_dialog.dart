@@ -173,6 +173,9 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
   Timer? _pollingTimer;
   Timer? _countdownTimer;
   int _secondsRemaining = 300; // 5 minutes
+  bool _isBakongLimitReached = false;
+  int _bakongRequestCount = 0;
+  int _bakongRequestLimit = 100;
 
   // Success State
   PaymentCheckStatusData? _completedPayment;
@@ -269,6 +272,7 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
 
         // Setup timer
         _secondsRemaining = 300;
+        _isBakongLimitReached = false;
         _startCountdown();
         _startPolling();
 
@@ -308,12 +312,46 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
     });
   }
 
+  /// Triggered when Bakong request quota hits 100 requests
+  void _onBakongLimitReached(String? message, int count, [int limit = 100]) {
+    _pollingTimer?.cancel(); // Immediately halt polling
+    if (!mounted) return;
+
+    setState(() {
+      _isBakongLimitReached = true;
+      _bakongRequestCount = count;
+      _bakongRequestLimit = limit;
+    });
+
+    // Alert user via GetX Snackbar
+    AppAlert.error(
+      'Bakong Limit Reached (/)',
+      message != null && message.isNotEmpty
+          ? message
+          : 'សំណើទៅកាន់ Bakong ដល់កម្រិតកំណត់ / ដងហើយ! Bakong បានផ្អាកទទួល request ជាបណ្ដោះអាសន្ន។',
+      const Duration(seconds: 5),
+    );
+  }
+
   Future<void> _checkPaymentStatusSilently() async {
-    if (_qrData == null || !mounted) return;
+    if (_qrData == null || !mounted || _isBakongLimitReached) return;
     try {
       final res = await _paymentService.checkStatus(_qrData!.paymentId);
-      if (res.isPaid && mounted) {
+      if (!mounted) return;
+
+      setState(() {
+        _bakongRequestCount = res.bakongRequestCount;
+        _bakongRequestLimit = res.bakongRequestLimit;
+      });
+
+      if (res.isPaid) {
         _onPaymentSuccess(res.data);
+      } else if (res.limitReached) {
+        _onBakongLimitReached(res.message, res.bakongRequestCount, res.bakongRequestLimit);
+      }
+    } on BakongLimitException catch (e) {
+      if (mounted) {
+        _onBakongLimitReached(e.message, e.requestCount, e.requestLimit);
       }
     } catch (_) {
       // Ignore background network blips
@@ -323,17 +361,39 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
   // Manual Check Button
   Future<void> _handleManualCheck() async {
     if (_qrData == null) return;
+
+    if (_isBakongLimitReached) {
+      AppAlert.warning(
+        'Bakong Limit Reached',
+        'ការស្នើសុំទៅកាន់ Bakong ដល់កម្រិតកំណត់ / ដងហើយ! សូមព្យាយាមម្តងទៀតនៅពេលក្រោយ។',
+      );
+      return;
+    }
+
     setState(() => _isChecking = true);
 
     try {
       final res = await _paymentService.checkStatus(_qrData!.paymentId);
-      if (res.isPaid && mounted) {
+      if (!mounted) return;
+
+      setState(() {
+        _bakongRequestCount = res.bakongRequestCount;
+        _bakongRequestLimit = res.bakongRequestLimit;
+      });
+
+      if (res.isPaid) {
         _onPaymentSuccess(res.data);
+      } else if (res.limitReached) {
+        _onBakongLimitReached(res.message, res.bakongRequestCount, res.bakongRequestLimit);
       } else {
         AppAlert.info(
           'ស្ថានភាពទូទាត់',
           'មិនទាន់ទទួលបានការបង់ប្រាក់នៅឡើយទេ។ សូមពិនិត្យមើលក្នុងកម្មវិធីធនាគាររបស់អ្នក។',
         );
+      }
+    } on BakongLimitException catch (e) {
+      if (mounted) {
+        _onBakongLimitReached(e.message, e.requestCount, e.requestLimit);
       }
     } catch (e) {
       AppAlert.error('កំហុស', e.toString().replaceAll('Exception: ', ''));
@@ -1038,28 +1098,92 @@ class _BakongPaymentSheetState extends State<_BakongPaymentSheet> {
 
         const SizedBox(height: 16),
 
-        // Realtime Polling indicator
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              width: 14,
-              height: 14,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
+        // Realtime Polling indicator / Bakong Limit Reached Alert
+        if (_isBakongLimitReached)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEF2F2),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFFCA5A5)),
             ),
-            const SizedBox(width: 8),
-            Text(
-              'កំពុងរង់ចាំការស្កេនពី App ធនាគារ...',
-              style: GoogleFonts.battambang(
-                fontSize: 12,
-                color: const Color(0xFF64748B),
-              ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFDC2626),
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ដល់កម្រិតកំណត់ Bakong ($_bakongRequestCount/$_bakongRequestLimit ដង)',
+                        style: GoogleFonts.battambang(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF991B1B),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Bakong បានផ្អាកទទួលសំណើជាបណ្ដោះអាសន្ន។ ការពិនិត្យស្វ័យប្រវត្តិត្រូវបានបញ្ឈប់។',
+                        style: GoogleFonts.battambang(
+                          fontSize: 11,
+                          color: const Color(0xFFB91C1C),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          )
+        else
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'កំពុងរង់ចាំការស្កេនពី App ធនាគារ...',
+                style: GoogleFonts.battambang(
+                  fontSize: 12,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+              if (_bakongRequestCount > 0) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Text(
+                    'Bakong: $_bakongRequestCount/$_bakongRequestLimit',
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
 
         const SizedBox(height: 18),
 

@@ -296,13 +296,30 @@ class _DetailscreenState extends State<Detailscreen> {
                             _buildInfoRow(
                               icon: Icons.key_outlined,
                               label: "ប្រាក់កក់",
-                              value:
-                                  room.depositPrice != null &&
-                                      room.depositPrice! > 0
-                                  ? (room.depositCurrency == 'KHR'
-                                        ? "${room.depositPrice!.toInt()} ៛ (${room.roomInformation.deposit})"
-                                        : "\$${room.depositPrice} (${room.roomInformation.deposit})")
-                                  : room.roomInformation.deposit,
+                              value: () {
+                                if (room.depositPrice != null &&
+                                    room.depositPrice! > 0) {
+                                  final amountStr =
+                                      room.depositCurrency == 'KHR'
+                                      ? "${room.depositPrice!.toInt()} ៛"
+                                      : "\$${room.depositPrice}";
+                                  final cleanDeposit = room
+                                      .roomInformation
+                                      .deposit
+                                      .replaceAll(
+                                        RegExp(r'\s*\(\$.*?\)\s*'),
+                                        '',
+                                      )
+                                      .trim();
+                                  return cleanDeposit.isNotEmpty &&
+                                          cleanDeposit != amountStr
+                                      ? "$amountStr ($cleanDeposit)"
+                                      : amountStr;
+                                }
+                                return room.roomInformation.deposit.isNotEmpty
+                                    ? room.roomInformation.deposit
+                                    : "មិនតម្រូវ";
+                              }(),
                             ),
                           ],
                         ),
@@ -1368,20 +1385,27 @@ class _DetailscreenState extends State<Detailscreen> {
     required String value,
   }) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 22, color: Colors.blueGrey.shade700),
-        const SizedBox(width: 14),
+        Icon(icon, size: 20, color: Colors.blueGrey.shade700),
+        const SizedBox(width: 12),
         Text(
           label,
-          style: TextStyle(fontSize: 16, color: Colors.blueGrey.shade700),
+          style: GoogleFonts.battambang(
+            fontSize: 14.5,
+            color: Colors.blueGrey.shade700,
+          ),
         ),
-        const Spacer(),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: GoogleFonts.battambang(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF0F172A),
+            ),
           ),
         ),
       ],

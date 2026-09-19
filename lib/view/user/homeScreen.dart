@@ -14,6 +14,7 @@ import 'package:roomdz_frontend/view/user/profile_Screen.dart';
 import 'package:roomdz_frontend/viewmodel/viewCategory.dart';
 import 'package:roomdz_frontend/widget/skeleton/home_screen_skeleton.dart';
 import 'package:roomdz_frontend/controller/favorite_controller.dart';
+import 'package:roomdz_frontend/widget/home_banner_slider.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -102,17 +103,17 @@ class _HomescreenState extends State<Homescreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildLocationSearch(),
-
-                const SizedBox(height: 12),
-
                 _buildCurrentLocation(),
 
                 const SizedBox(height: 16),
 
                 _buildCategory(),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+
+                const HomeBannerSlider(),
+
+                const SizedBox(height: 16),
 
                 _buildBody(),
 
@@ -122,100 +123,6 @@ class _HomescreenState extends State<Homescreen> {
           ),
         ),
       ),
-    );
-  }
-
-  // location search section
-  Widget _buildLocationSearch() {
-    return Column(
-      children: [
-        TextFormField(
-          controller: locationController.locationTextController,
-          onTap: () {
-            if (locationController.locationTextController.text.isNotEmpty) {
-              locationController.searchLocation(
-                locationController.locationTextController.text,
-              );
-            }
-          },
-          onChanged: locationController.searchLocation,
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: AppColors.primary),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-            hintText: 'ស្វែងរកទីតាំងបន្ទប់....',
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: ValueListenableBuilder(
-              valueListenable: locationController.locationTextController,
-              builder: (context, value, child) {
-                if (value.text.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-
-                return GestureDetector(
-                  onTap: locationController.clearLocation,
-                  child: const Icon(Icons.close),
-                );
-              },
-            ),
-          ),
-        ),
-
-        Obx(() {
-          final isSearching = locationController.isLocationSearching.value;
-
-          final suggestions = locationController.locationSuggestions.toList();
-
-          if (!isSearching || suggestions.isEmpty) {
-            return const SizedBox.shrink();
-          }
-
-          return Container(
-            margin: const EdgeInsets.only(top: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: suggestions.length,
-              separatorBuilder: (context, index) {
-                return Divider(height: 1, color: Colors.grey.shade200);
-              },
-              itemBuilder: (context, index) {
-                final location = suggestions[index];
-
-                return ListTile(
-                  leading: Icon(
-                    Icons.location_on_outlined,
-                    color: AppColors.primary,
-                  ),
-                  title: Text(
-                    location,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  onTap: () {
-                    locationController.selectLocation(location);
-                    FocusScope.of(context).unfocus();
-                  },
-                );
-              },
-            ),
-          );
-        }),
-      ],
     );
   }
 
