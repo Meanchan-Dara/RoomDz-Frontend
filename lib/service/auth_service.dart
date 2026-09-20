@@ -1,11 +1,77 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/service/database/database_service.dart';
 import 'api_client.dart';
 
 class AuthService {
   final Dio _dio = ApiClient.instance;
+
+  static const String googleServerClientId =
+      '719036419945-j2km8d9ua6u3idkk16bmgrkdauuct0m8.apps.googleusercontent.com';
+
+  /// Sign in with Google (Backend API verification without Firebase SDK)
+  Future<UserModel?> loginWithGoogle() async {
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId: googleServerClientId,
+        scopes: ['email', 'profile'],
+      );
+
+      // Force account picker by signing out first if needed
+      if (await googleSignIn.isSignedIn()) {
+        await googleSignIn.signOut();
+      }
+
+      final GoogleSignInAccount? account = await googleSignIn.signIn();
+      if (account == null) {
+        return null; // User canceled sign-in
+      }
+
+      final GoogleSignInAuthentication auth = await account.authentication;
+      final String? accessToken = auth.accessToken;
+      final String? idToken = auth.idToken;
+
+      debugPrint(
+        'GOOGLE AUTH: accessToken=${accessToken != null ? "yes" : "no"}, idToken=${idToken != null ? "yes" : "no"}',
+      );
+
+      if ((accessToken == null || accessToken.isEmpty) &&
+          (idToken == null || idToken.isEmpty)) {
+        throw Exception('មិនអាចទទួល token ពី Google បានទេ');
+      }
+
+      final res = await _dio.post(
+        '/auth/google/callback',
+        data: {
+          if (accessToken != null && accessToken.isNotEmpty)
+            'access_token': accessToken,
+          if (idToken != null && idToken.isNotEmpty) 'id_token': idToken,
+        },
+      );
+
+      debugPrint('GOOGLE LOGIN STATUS: ${res.statusCode}');
+      debugPrint('GOOGLE LOGIN RESPONSE: ${res.data}');
+
+      final token =
+          res.data['token']?.toString() ??
+          res.data['access_token']?.toString() ??
+          '';
+      if (token.isNotEmpty) {
+        await ApiClient.saveToken(token);
+      }
+
+      final user = UserModel.fromJson(res.data['user']);
+      await DatabaseService.instance.saveUser(user);
+      return user;
+    } on DioException catch (e) {
+      debugPrint(
+        'GOOGLE LOGIN DIO ERROR: ${e.response?.statusCode} - ${e.response?.data}',
+      );
+      rethrow;
+    }
+  }
 
   Future<UserModel> login({
     required String email,
@@ -164,6 +230,12 @@ class AuthService {
     } catch (e) {
       debugPrint('Logout request error: $e');
     } finally {
+      try {
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        if (await googleSignIn.isSignedIn()) {
+          await googleSignIn.signOut();
+        }
+      } catch (_) {}
       await ApiClient.clearToken();
       await DatabaseService.instance.clearUser();
     }

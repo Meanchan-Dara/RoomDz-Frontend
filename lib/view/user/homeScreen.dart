@@ -496,11 +496,6 @@ class RoomCard extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                RoomStatusBadge(
-                  status: room.status,
-                  hasLatestBooking: room.latestBooking != null,
-                ),
-                const SizedBox(width: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -525,6 +520,11 @@ class RoomCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(width: 6),
+                RoomStatusBadge(
+                  status: room.status,
+                  hasLatestBooking: room.latestBooking != null,
                 ),
               ],
             ),

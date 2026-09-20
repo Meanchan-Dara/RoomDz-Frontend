@@ -8,6 +8,7 @@ import 'package:roomdz_frontend/widget/parentScreen.dart';
 import 'package:roomdz_frontend/widget/parent_screen_own.dart';
 import 'package:roomdz_frontend/widget/app_alert.dart';
 import 'package:roomdz_frontend/widget/modern_button_loader.dart';
+import 'package:roomdz_frontend/model/user_model.dart';
 import 'package:roomdz_frontend/view/user/registerScreen.dart';
 
 class Signinscreen extends StatefulWidget {
@@ -26,6 +27,42 @@ class _SigninscreenState extends State<Signinscreen> {
   final AuthService authService = AuthService();
 
   bool isLoading = false;
+  bool isGoogleLoading = false;
+
+  void _navigateToHome(UserModel user) {
+    Widget targetScreen;
+    switch (DatabaseService.normalizeRole(user.role?.name)) {
+      case 'owner':
+        targetScreen = const ParentScreenOwn();
+        break;
+      case 'customer':
+      default:
+        targetScreen = const Parentscreen();
+    }
+    Get.off(() => targetScreen);
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    if (isLoading || isGoogleLoading) return;
+    setState(() => isGoogleLoading = true);
+    try {
+      final user = await authService.loginWithGoogle();
+      if (user == null) {
+        // User canceled picker
+        return;
+      }
+      if (!mounted) return;
+      _navigateToHome(user);
+    } on DioException catch (e) {
+      final msg =
+          e.response?.data?['message'] ?? 'ការចូលជាមួយ Google បានបរាជ័យ';
+      AppAlert.error('បរាជ័យ', msg);
+    } catch (e) {
+      AppAlert.error('បរាជ័យ', e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => isGoogleLoading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -141,25 +178,7 @@ class _SigninscreenState extends State<Signinscreen> {
                           // Persist user + role so the app can auto-route on next launch
                           await DatabaseService.instance.saveUser(user);
                           if (!mounted) return;
-
-                          Widget targetScreen;
-                          switch (DatabaseService.normalizeRole(
-                            user.role?.name,
-                          )) {
-                            // case 'admin':
-                            //   targetScreen = ParentScreenAdmin();
-                            //   break;
-                            case 'owner':
-                              targetScreen = const ParentScreenOwn();
-                              break;
-                            case 'customer':
-                            default:
-                              targetScreen = const Parentscreen();
-                          }
-
-                          Get.off(
-                            () => targetScreen,
-                          ); // Get.off, not Get.to — don't stack login on the back stack
+                          _navigateToHome(user);
                         } on DioException catch (e) {
                           final msg =
                               e.response?.data?['message'] ?? 'Login failed';
@@ -212,31 +231,56 @@ class _SigninscreenState extends State<Signinscreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {},
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.network(
-                        height: 25,
-                        'https://cdn-icons-png.magnific.com/512/720/720255.png',
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(
-                              Icons.broken_image,
-                              size: 24,
-                              color: Colors.red,
+                  onPressed: (isLoading || isGoogleLoading)
+                      ? null
+                      : _handleGoogleSignIn,
+                  child: isGoogleLoading
+                      ? const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary,
+                              ),
                             ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'បន្តជាមួយ Google',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E293B),
+                            SizedBox(width: 12),
+                            Text(
+                              'កំពុងភ្ជាប់ជាមួយ Google...',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.network(
+                              'https://cdn-icons-png.flaticon.com/512/300/300221.png',
+                              height: 24,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(
+                                    Icons.account_circle,
+                                    size: 24,
+                                    color: Colors.red,
+                                  ),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'បន្តជាមួយ Google',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               // create account
