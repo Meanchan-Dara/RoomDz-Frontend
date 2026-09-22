@@ -1,14 +1,14 @@
-import 'package:firebase_core/firebase_core.dart';
+﻿import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:roomdz_frontend/controller/favorite_controller.dart';
-import 'package:roomdz_frontend/controller/profile_controller.dart';
-import 'package:roomdz_frontend/service/api_client.dart';
-import 'package:roomdz_frontend/service/database/database_service.dart';
-import 'package:roomdz_frontend/view/user/signInScreen.dart';
-import 'package:roomdz_frontend/widget/parentScreen.dart';
-import 'package:roomdz_frontend/widget/parent_screen_own.dart';
+import 'package:roomdz_frontend/features/rooms/ui/controllers/favorite_controller.dart';
+import 'package:roomdz_frontend/features/auth/ui/controllers/profile_controller.dart';
+import 'package:roomdz_frontend/core/network/api_client.dart';
+import 'package:roomdz_frontend/core/database/database_service.dart';
+import 'package:roomdz_frontend/features/auth/ui/screens/sign_in_screen.dart';
+import 'package:roomdz_frontend/core/widgets/parent_screen.dart';
+import 'package:roomdz_frontend/core/widgets/parent_screen_own.dart';
 import 'firebase_options.dart';
 
 void main() async {

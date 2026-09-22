@@ -1,0 +1,338 @@
+﻿import 'package:geocoding/geocoding.dart' as geo;
+import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
+import 'package:flutter/material.dart';
+import 'package:roomdz_frontend/features/rooms/ui/controllers/category_filter_controller.dart';
+import 'package:roomdz_frontend/core/widgets/app_alert.dart';
+
+class LocationController extends GetxController {
+  final CategoryFilter categoryFilter;
+
+  LocationController({required this.categoryFilter});
+
+  final TextEditingController locationTextController = TextEditingController();
+
+  final RxBool isLocationSearching = false.obs;
+
+  final RxBool isGettingCurrentLocation = false.obs;
+
+  final RxString currentLocation = 'ជ្រើសរើសទីតាំងរបស់អ្នក'.obs;
+
+  final RxList<String> locationSuggestions = <String>[].obs;
+
+  // available locations in phnom penh
+  final List<String> availableLocations = [
+    'Toul Kork',
+    'Chamkarmon',
+    'Sen Sok',
+    'Daun Penh',
+    'Prampir Meakkakra',
+    'Dangkao',
+    'Meanchey',
+    'Russey Keo',
+    'Por Senchey',
+    'Chroy Changvar',
+    'Prek Pnov',
+    'Chbar Ampov',
+    'Boeng Keng Kang',
+    'Kamboul',
+    'BKK 1',
+    'BKK 2',
+    'BKK 3',
+    'Toul Tom Poung',
+    'Russian Market',
+    'Olympic',
+    'Riverside',
+    'Wat Phnom',
+    'Aeon Sen Sok',
+  ];
+
+  // search location suggestions
+  void searchLocation(String query) {
+    if (query.trim().isEmpty) {
+      locationSuggestions.clear();
+      isLocationSearching.value = false;
+      return;
+    }
+
+    final suggestions = categoryFilter.getLocationSuggestions(query);
+
+    locationSuggestions.assignAll(suggestions);
+
+    isLocationSearching.value = true;
+  }
+
+  // select location from suggestion
+  void selectLocation(String location) {
+    locationTextController.text = location;
+
+    currentLocation.value = location;
+
+    locationSuggestions.clear();
+
+    isLocationSearching.value = false;
+
+    categoryFilter.selectLocation(location);
+  }
+
+  // clear location search
+  void clearLocation() {
+    locationTextController.clear();
+
+    locationSuggestions.clear();
+
+    isLocationSearching.value = false;
+
+    currentLocation.value = 'ជ្រើសរើសទីតាំងរបស់អ្នក';
+
+    categoryFilter.clearLocation();
+  }
+
+  // get current device location
+  Future<void> getCurrentLocation() async {
+    try {
+      isGettingCurrentLocation.value = true;
+
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+      if (!serviceEnabled) {
+        AppAlert.warning(
+          'សេវាទីតាំង',
+          'សូមបើក Location Service នៅលើទូរស័ព្ទរបស់អ្នក',
+        );
+
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied) {
+        AppAlert.warning('ការអនុញ្ញាត', 'ការចូលប្រើទីតាំងត្រូវបានបដិសេធ');
+
+        return;
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        AppAlert.warning(
+          'ការអនុញ្ញាត',
+          'សូមបើកសិទ្ធិចូលប្រើទីតាំងនៅក្នុង Settings',
+        );
+
+        await Geolocator.openAppSettings();
+
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      final placemarks = await geo.placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isEmpty) {
+        AppAlert.warning(
+          'រកមិនឃើញទីតាំង',
+          'មិនអាចស្វែងរកទីតាំងបច្ចុប្បន្នរបស់អ្នកបានទេ',
+        );
+
+        return;
+      }
+
+      final place = placemarks.first;
+
+      final locationParts = <String>[];
+
+      if (place.subLocality != null && place.subLocality!.trim().isNotEmpty) {
+        locationParts.add(place.subLocality!.trim());
+      }
+
+      if (place.locality != null && place.locality!.trim().isNotEmpty) {
+        locationParts.add(place.locality!.trim());
+      }
+
+      if (place.administrativeArea != null &&
+          place.administrativeArea!.trim().isNotEmpty &&
+          !locationParts.contains(place.administrativeArea!.trim())) {
+        locationParts.add(place.administrativeArea!.trim());
+      }
+
+      final locationName = locationParts.join(', ');
+
+      if (locationName.isEmpty) {
+        AppAlert.warning(
+          'រកមិនឃើញទីតាំង',
+          'មិនអាចបំលែងកូអរដោនេទៅជាអាសយដ្ឋានបានទេ',
+        );
+
+        return;
+      }
+
+      locationTextController.text = locationName;
+
+      currentLocation.value = locationName;
+
+      categoryFilter.searchByLocation(locationName);
+
+      locationSuggestions.clear();
+
+      isLocationSearching.value = false;
+    } catch (e) {
+      debugPrint('error getting current location: $e');
+
+      AppAlert.error(
+        'បញ្ហាទីតាំង',
+        'មិនអាចទាញយកទីតាំងបច្ចុប្បន្នរបស់អ្នកបានទេ',
+      );
+    } finally {
+      isGettingCurrentLocation.value = false;
+    }
+  }
+
+  // show location selection bottom sheet
+  void showLocationBottomSheet(BuildContext context) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.only(
+          top: 16,
+          left: 16,
+          right: 16,
+          bottom: 20,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 45,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'ជ្រើសរើសទីតាំង',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'ជ្រើសរើសតំបន់ដើម្បីស្វែងរកបន្ទប់ជួល',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // use current location
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                leading: Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.my_location, color: Colors.blue),
+                ),
+                title: const Text(
+                  'ប្រើទីតាំងបច្ចុប្បន្នរបស់ខ្ញុំ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: const Text(
+                  'ប្រើប្រព័ន្ធ GPS ដើម្បីស្វែងរកទីតាំងរបស់អ្នក',
+                ),
+                onTap: () {
+                  Get.back();
+                  getCurrentLocation();
+                },
+              ),
+
+              const Divider(),
+
+              // manual locations
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: availableLocations.length,
+                  itemBuilder: (context, index) {
+                    final location = availableLocations[index];
+
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                      leading: Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.location_on_outlined,
+                          color: Colors.red,
+                        ),
+                      ),
+                      title: Text(
+                        location,
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 15),
+                      onTap: () {
+                        Get.back();
+                        selectLocation(location);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  // reset location
+  void resetLocation() {
+    locationTextController.clear();
+
+    locationSuggestions.clear();
+
+    isLocationSearching.value = false;
+
+    currentLocation.value = 'ជ្រើសរើសទីតាំងរបស់អ្នក';
+
+    categoryFilter.clearLocation();
+  }
+
+  @override
+  void onClose() {
+    locationTextController.dispose();
+
+    super.onClose();
+  }
+}

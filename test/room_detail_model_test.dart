@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:roomdz_frontend/rooms/room_detail_model.dart';
+import 'package:roomdz_frontend/features/rooms/data/models/room_detail_model.dart';
 
 void main() {
   test(
