@@ -1,9 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:roomdz_frontend/features/auth/data/models/user_model.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get/get.dart' hide FormData, MultipartFile;
 import 'package:roomdz_frontend/core/database/database_service.dart';
 import 'package:roomdz_frontend/core/network/api_client.dart';
+import 'package:roomdz_frontend/features/auth/data/models/user_model.dart';
+import 'package:roomdz_frontend/features/auth/ui/controllers/profile_controller.dart';
 
 class AuthService {
   final Dio _dio = ApiClient.instance;
@@ -64,6 +67,18 @@ class AuthService {
 
       final user = UserModel.fromJson(res.data['user']);
       await DatabaseService.instance.saveUser(user);
+
+      // Reset any stale local avatar cache and sync ProfileController
+      try {
+        const storage = FlutterSecureStorage();
+        await storage.delete(key: 'avatar_path');
+        if (Get.isRegistered<ProfileController>()) {
+          final ctrl = Get.find<ProfileController>();
+          ctrl.currentUser.value = user;
+          ctrl.localAvatarPath.value = null;
+        }
+      } catch (_) {}
+
       return user;
     } on DioException catch (e) {
       debugPrint(
@@ -94,7 +109,20 @@ class AuthService {
         await ApiClient.saveToken(token);
       }
 
-      return UserModel.fromJson(res.data['user']);
+      final user = UserModel.fromJson(res.data['user']);
+      await DatabaseService.instance.saveUser(user);
+
+      try {
+        const storage = FlutterSecureStorage();
+        await storage.delete(key: 'avatar_path');
+        if (Get.isRegistered<ProfileController>()) {
+          final ctrl = Get.find<ProfileController>();
+          ctrl.currentUser.value = user;
+          ctrl.localAvatarPath.value = null;
+        }
+      } catch (_) {}
+
+      return user;
     } on DioException catch (e) {
       debugPrint('LOGIN ERROR STATUS: ${e.response?.statusCode}');
       debugPrint('LOGIN ERROR DATA: ${e.response?.data}');
@@ -238,6 +266,15 @@ class AuthService {
       } catch (_) {}
       await ApiClient.clearToken();
       await DatabaseService.instance.clearUser();
+      try {
+        const storage = FlutterSecureStorage();
+        await storage.delete(key: 'avatar_path');
+        if (Get.isRegistered<ProfileController>()) {
+          final ctrl = Get.find<ProfileController>();
+          ctrl.currentUser.value = null;
+          ctrl.localAvatarPath.value = null;
+        }
+      } catch (_) {}
     }
   }
 }

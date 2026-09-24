@@ -10,6 +10,8 @@ import 'package:roomdz_frontend/features/auth/ui/controllers/profile_controller.
 import 'package:roomdz_frontend/features/rooms/data/models/room_model.dart';
 import 'package:roomdz_frontend/features/rooms/data/services/room_service.dart';
 import 'package:roomdz_frontend/features/rooms/ui/screens/detail_screen.dart';
+import 'package:roomdz_frontend/features/auth/ui/controllers/notification_controller.dart';
+import 'package:roomdz_frontend/features/auth/ui/screens/profile_contents/notifications_screen.dart';
 import 'package:roomdz_frontend/features/auth/ui/screens/profile_screen.dart';
 import 'package:roomdz_frontend/features/rooms/ui/controllers/category_static_list.dart';
 import 'package:roomdz_frontend/core/widgets/skeleton/home_screen_skeleton.dart';
@@ -26,6 +28,7 @@ class Homescreen extends StatefulWidget {
 
 class _HomescreenState extends State<Homescreen> {
   final ProfileController _profileCtrl = Get.put(ProfileController());
+  final NotificationController _notifCtrl = Get.put(NotificationController());
 
   final RoomServer roomService = RoomServer();
 
@@ -51,7 +54,10 @@ class _HomescreenState extends State<Homescreen> {
 
     selectedCategories = 0;
 
-    await categoryFilter.getRooms();
+    await Future.wait([
+      categoryFilter.getRooms(),
+      _notifCtrl.fetchNotifications(),
+    ]);
 
     setState(() {});
   }
@@ -62,10 +68,53 @@ class _HomescreenState extends State<Homescreen> {
       appBar: AppBar(
         actionsPadding: const EdgeInsets.symmetric(horizontal: 16),
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_outlined, size: 28),
-          ),
+          Obx(() {
+            final count = _notifCtrl.unreadCount.value;
+            return Stack(
+              alignment: Alignment.center,
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  onPressed: () => Get.to(() => const NotificationsScreen()),
+                  icon: const Icon(Icons.notifications_outlined, size: 28),
+                ),
+                if (count > 0)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 2,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: count > 9 ? BoxShape.rectangle : BoxShape.circle,
+                        borderRadius: count > 9
+                            ? BorderRadius.circular(10)
+                            : null,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        count > 99 ? '99+' : '$count',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          height: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
         ],
         leading: GestureDetector(
           onTap: () => Get.to(() => const ProfileScreen()),

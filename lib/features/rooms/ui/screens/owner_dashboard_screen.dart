@@ -1,14 +1,21 @@
-﻿import 'package:flutter/material.dart';
+import 'dart:io';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/core/constants/app_colors.dart';
+import 'package:roomdz_frontend/features/auth/ui/controllers/profile_controller.dart';
+import 'package:roomdz_frontend/features/auth/ui/screens/profile_screen.dart';
 import 'package:roomdz_frontend/features/rooms/data/models/view_request_model.dart';
 import 'package:roomdz_frontend/features/rooms/data/services/owner_room_service.dart';
 import 'package:roomdz_frontend/features/rooms/data/services/viewing_request_service.dart';
 import 'package:roomdz_frontend/features/rooms/ui/screens/post_room_screen.dart';
 import 'package:roomdz_frontend/core/widgets/app_alert.dart';
 import 'package:roomdz_frontend/core/widgets/build_stats_grid.dart';
+import 'package:roomdz_frontend/core/widgets/modern_button_loader.dart';
 import 'package:roomdz_frontend/core/widgets/role_badge.dart';
+import 'package:roomdz_frontend/features/rooms/ui/screens/viewing_request_screen.dart';
 
 class OwnerDashboardScreen extends StatefulWidget {
   const OwnerDashboardScreen({super.key});
@@ -20,11 +27,13 @@ class OwnerDashboardScreen extends StatefulWidget {
 class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
   final ViewingRequestService _viewingRequestService = ViewingRequestService();
   final OwnerRoomService _roomService = OwnerRoomService();
+  final ProfileController _profileCtrl = Get.find<ProfileController>();
 
   List<ViewingRequestModel> viewingRequests = [];
 
   bool isLoading = false;
   int? processingRequestId;
+  String? processingAction;
 
   int _totalRooms = 0;
   int _availableRooms = 0;
@@ -88,6 +97,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
     setState(() {
       processingRequestId = request.id;
+      processingAction = 'accept';
     });
 
     try {
@@ -106,6 +116,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       if (mounted) {
         setState(() {
           processingRequestId = null;
+          processingAction = null;
         });
       }
     }
@@ -117,6 +128,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
 
     setState(() {
       processingRequestId = request.id;
+      processingAction = 'decline';
     });
 
     try {
@@ -135,6 +147,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
       if (mounted) {
         setState(() {
           processingRequestId = null;
+          processingAction = null;
         });
       }
     }
@@ -217,77 +230,127 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
         ),
 
         actions: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.tertiary,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              onPressed: () {},
-              icon: Icon(
-                Icons.swap_horiz_rounded,
-                color: AppColors.neutral.withValues(alpha: 0.7),
-                size: 22,
-              ),
-            ),
-          ),
+          Center(
+            child: GestureDetector(
+              onTap: () => Get.to(() => const ProfileScreen()),
+              child: Obx(() {
+                final user = _profileCtrl.currentUser.value;
+                final path = _profileCtrl.localAvatarPath.value;
+                final remote = user?.avatar;
 
-          const SizedBox(width: 12),
+                ImageProvider image;
+                if (path != null &&
+                    path.isNotEmpty &&
+                    File(path).existsSync()) {
+                  image = FileImage(File(path));
+                } else if (remote != null && remote.isNotEmpty) {
+                  image = CachedNetworkImageProvider(remote);
+                } else {
+                  image = const NetworkImage(
+                    'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+                  );
+                }
 
-          Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () {},
-                icon: Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.neutral.withValues(alpha: 0.8),
-                  size: 26,
-                ),
-              ),
+                final String displayName =
+                    (user?.name != null && user!.name.trim().isNotEmpty)
+                    ? user.name.trim()
+                    : 'ម្ចាស់បន្ទប់';
+                final String displayEmail =
+                    (user?.email != null && user!.email.trim().isNotEmpty)
+                    ? user.email.trim()
+                    : '';
 
-              Positioned(
-                top: 2,
-                right: 2,
-                child: Container(
-                  width: 9,
-                  height: 9,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.surface, width: 1.5),
+                return Container(
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                ),
-              ),
-            ],
-          ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                    border: Border.all(color: Colors.grey.shade200, width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Profile image on the left
+                      Container(
+                        padding: const EdgeInsets.all(1.5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.grey.shade100,
+                          backgroundImage: image,
+                        ),
+                      ),
 
-          const SizedBox(width: 12),
+                      const SizedBox(width: 8),
 
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.person_outline_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
+                      // Name and Email on the right
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 85),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.neutral,
+                                height: 1.15,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              displayEmail.isNotEmpty
+                                  ? displayEmail
+                                  : 'ម្ចាស់បន្ទប់',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.grey.shade600,
+                                height: 1.15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 4),
+
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 16,
+                        color: Colors.grey.shade500,
+                      ),
+                    ],
+                  ),
+                );
+              }),
             ),
           ),
 
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
         ],
       ),
 
@@ -399,7 +462,8 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
                 ViewingRequestsSection(
                   requests: viewingRequests,
                   processingRequestId: processingRequestId,
-                  onSeeAllTap: () {},
+                  processingAction: processingAction,
+                  onSeeAllTap: () => Get.to(() => const ViewingRequestScreen()),
                   onAccept: _acceptRequest,
                   onDecline: _declineRequest,
                 ),
@@ -422,6 +486,7 @@ class ViewingRequestsSection extends StatelessWidget {
   final Function(ViewingRequestModel)? onDecline;
 
   final int? processingRequestId;
+  final String? processingAction;
 
   const ViewingRequestsSection({
     super.key,
@@ -430,6 +495,7 @@ class ViewingRequestsSection extends StatelessWidget {
     this.onAccept,
     this.onDecline,
     this.processingRequestId,
+    this.processingAction,
   });
 
   @override
@@ -558,7 +624,11 @@ class ViewingRequestsSection extends StatelessWidget {
 
     final avatar = requester?.avatar;
 
-    final isProcessing = processingRequestId == request.id;
+    final isAccepting =
+        processingRequestId == request.id && processingAction == 'accept';
+    final isDeclining =
+        processingRequestId == request.id && processingAction == 'decline';
+    final isAnyProcessing = processingRequestId == request.id;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -766,8 +836,8 @@ class ViewingRequestsSection extends StatelessWidget {
                   child: SizedBox(
                     height: 42,
 
-                    child: ElevatedButton.icon(
-                      onPressed: isProcessing
+                    child: ElevatedButton(
+                      onPressed: isAnyProcessing
                           ? null
                           : () => onDecline?.call(request),
 
@@ -784,22 +854,18 @@ class ViewingRequestsSection extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                       ),
 
-                      icon: isProcessing
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.close_rounded, size: 18),
-
-                      label: const Text(
-                        'បដិសេធ',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
+                      child: ModernButtonContent(
+                        isLoading: isDeclining,
+                        text: 'បដិសេធ',
+                        loadingText: 'កំពុងបដិសេធ',
+                        icon: Icons.close_rounded,
+                        textColor: AppColors.neutral,
+                        iconSize: 18,
+                        dotSize: 4.0,
+                        dotSpacing: 3.0,
                       ),
                     ),
                   ),
@@ -811,8 +877,8 @@ class ViewingRequestsSection extends StatelessWidget {
                   child: SizedBox(
                     height: 42,
 
-                    child: ElevatedButton.icon(
-                      onPressed: isProcessing
+                    child: ElevatedButton(
+                      onPressed: isAnyProcessing
                           ? null
                           : () => onAccept?.call(request),
 
@@ -827,25 +893,18 @@ class ViewingRequestsSection extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                       ),
 
-                      icon: isProcessing
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.check_rounded, size: 18),
-
-                      label: Text(
-                        isProcessing ? 'កំពុងដំណើរការ...' : 'ទទួលយក',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
+                      child: ModernButtonContent(
+                        isLoading: isAccepting,
+                        text: 'យល់ព្រម',
+                        loadingText: 'កំពុងយល់ព្រម',
+                        icon: Icons.check_rounded,
+                        textColor: Colors.white,
+                        iconSize: 18,
+                        dotSize: 4.0,
+                        dotSpacing: 3.0,
                       ),
                     ),
                   ),

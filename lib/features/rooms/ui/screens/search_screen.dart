@@ -1,9 +1,8 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:roomdz_frontend/core/constants/app_colors.dart';
 import 'package:roomdz_frontend/features/rooms/ui/controllers/category_filter_controller.dart';
-import 'package:roomdz_frontend/features/rooms/ui/controllers/location_controller.dart';
 import 'package:roomdz_frontend/features/rooms/data/models/room_model.dart';
 import 'package:roomdz_frontend/features/rooms/ui/screens/detail_screen.dart';
 import 'package:roomdz_frontend/features/rooms/ui/controllers/category_static_list.dart';
@@ -19,7 +18,6 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   late CategoryFilter categoryFilter;
-  late LocationController locationController;
 
   final TextEditingController searchController = TextEditingController();
 
@@ -30,8 +28,6 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
 
     categoryFilter = Get.find<CategoryFilter>();
-
-    locationController = Get.find<LocationController>();
 
     searchController.addListener(() {
       _searchRooms(searchController.text);
@@ -126,12 +122,6 @@ class _SearchScreenState extends State<SearchScreen> {
         children: [
           _buildSearchBox(),
 
-          const SizedBox(height: 12),
-
-          _buildLocationButton(),
-
-          const SizedBox(height: 12),
-
           _buildCategories(),
 
           const SizedBox(height: 8),
@@ -171,75 +161,6 @@ class _SearchScreenState extends State<SearchScreen> {
         onChanged: (value) {
           setState(() {});
         },
-      ),
-    );
-  }
-
-  // location button
-  Widget _buildLocationButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Obx(
-        () => InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () {
-            locationController.showLocationBottomSheet(context);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.location_on_outlined,
-                    color: AppColors.primary,
-                  ),
-                ),
-
-                const SizedBox(width: 10),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Location',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-
-                      const SizedBox(height: 2),
-
-                      Text(
-                        locationController.currentLocation.value,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                Icon(Icons.keyboard_arrow_down, color: AppColors.primary),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,6 +9,7 @@ import 'package:roomdz_frontend/features/rooms/ui/controllers/favorite_controlle
 import 'package:roomdz_frontend/features/rooms/data/models/room_detail_model.dart';
 import 'package:roomdz_frontend/core/database/database_service.dart';
 import 'package:roomdz_frontend/features/rooms/data/services/room_service.dart';
+import 'package:roomdz_frontend/features/rooms/data/models/view_request_model.dart';
 import 'package:roomdz_frontend/features/rooms/data/services/viewing_request_service.dart';
 import 'package:roomdz_frontend/core/utils/url_util.dart';
 import 'package:roomdz_frontend/core/widgets/app_alert.dart';
@@ -34,11 +35,34 @@ class _DetailscreenState extends State<Detailscreen> {
   late Future<RoomDetialModel> _roomDetailFuture;
   final FavoriteController favoriteController = Get.find<FavoriteController>();
 
+  ViewingRequestModel? _userActiveRequest;
+
   @override
   void initState() {
     super.initState();
     // Cache the future in initState to avoid re-triggering network requests on rebuilds
     _roomDetailFuture = _roomServer.getRoomsDetail(widget.id);
+    _checkUserViewingRequest();
+  }
+
+  Future<void> _checkUserViewingRequest() async {
+    try {
+      final myRequests = await _viewingRequestService.getMyViewingRequests();
+      ViewingRequestModel? active;
+      for (final r in myRequests) {
+        if (r.room?.id == widget.id &&
+            (r.status.toLowerCase() == 'pending' ||
+                r.status.toLowerCase() == 'confirmed')) {
+          active = r;
+          break;
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _userActiveRequest = active;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
@@ -891,67 +915,98 @@ class _DetailscreenState extends State<Detailscreen> {
                             child: Row(
                               children: [
                                 // Button 1: Request Viewing
-                                Expanded(
-                                  child: SizedBox(
-                                    height: 44,
-                                    child: ElevatedButton(
-                                      onPressed: isRented
-                                          ? () {
-                                              AppAlert.warning(
-                                                'បន្ទប់ត្រូវបានជួលហើយ',
-                                                'បន្ទប់នេះត្រូវបានជួលរួចរាល់ហើយ មិនអាចស្នើសុំមើលបានទេ។',
-                                              );
-                                            }
-                                          : () {
-                                              _showSendRequestDialog(
-                                                context,
-                                                room.name,
-                                              );
-                                            },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: isRented
-                                            ? Colors.grey.shade400
-                                            : AppColors.primary,
-                                        disabledBackgroundColor:
-                                            Colors.grey.shade400,
-                                        disabledForegroundColor: Colors.white,
-                                        foregroundColor: Colors.white,
-                                        elevation: 1,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                            Icons.calendar_month_outlined,
-                                            size: 16,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Flexible(
-                                            child: Text(
-                                              'ស្នើសុំមើល',
-                                              style: GoogleFonts.battambang(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                Builder(
+                                  builder: (context) {
+                                    final hasActiveRequest =
+                                        _userActiveRequest != null;
+                                    final isConfirmed =
+                                        _userActiveRequest?.status
+                                            .toLowerCase() ==
+                                        'confirmed';
+                                    final isPending =
+                                        _userActiveRequest?.status
+                                            .toLowerCase() ==
+                                        'pending';
+                                    final isViewDisabled =
+                                        isRented || hasActiveRequest;
+
+                                    final Color viewBtnColor = isRented
+                                        ? const Color(0xFF64748B) // Slate
+                                        : AppColors.primary;
+
+                                    final IconData viewIcon = isRented
+                                        ? Icons.do_not_disturb_on_rounded
+                                        : isConfirmed
+                                        ? Icons.check_circle_rounded
+                                        : isPending
+                                        ? Icons.hourglass_top_rounded
+                                        : Icons.calendar_month_outlined;
+
+                                    final String viewText = isRented
+                                        ? 'ត្រូវបានជួល'
+                                        : isConfirmed
+                                        ? 'យល់ព្រម'
+                                        : isPending
+                                        ? 'កំពុងរង់ចាំ'
+                                        : 'ស្នើសុំមើល';
+
+                                    return Expanded(
+                                      child: SizedBox(
+                                        height: 44,
+                                        child: ElevatedButton(
+                                          onPressed: isViewDisabled
+                                              ? null
+                                              : () {
+                                                  _showSendRequestDialog(
+                                                    context,
+                                                    room.name,
+                                                  );
+                                                },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: viewBtnColor,
+                                            disabledBackgroundColor:
+                                                viewBtnColor,
+                                            disabledForegroundColor:
+                                                Colors.white,
+                                            foregroundColor: Colors.white,
+                                            elevation: isViewDisabled ? 0 : 1,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
                                             ),
                                           ),
-                                        ],
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                viewIcon,
+                                                size: 16,
+                                                color: Colors.white,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Flexible(
+                                                child: Text(
+                                                  viewText,
+                                                  style: GoogleFonts.battambang(
+                                                    fontSize: 12.5,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
+                                    );
+                                  },
                                 ),
 
                                 const SizedBox(width: 8),
@@ -962,16 +1017,7 @@ class _DetailscreenState extends State<Detailscreen> {
                                     height: 44,
                                     child: ElevatedButton(
                                       onPressed: !isAvailable
-                                          ? () {
-                                              AppAlert.warning(
-                                                isBooked
-                                                    ? 'បន្ទប់ត្រូវបានកក់រួចហើយ'
-                                                    : 'បន្ទប់ត្រូវបានជួលរួចហើយ',
-                                                isBooked
-                                                    ? 'បន្ទប់នេះត្រូវបានអតិថិជនផ្សេងទៀតកក់ប្រាក់រួចរាល់ហើយ មិនអាចធ្វើការកក់ជាន់គ្នាបានទេ។ សូមពិនិត្យមើលបន្ទប់ទំនេរផ្សេងទៀត។'
-                                                    : 'បន្ទប់នេះត្រូវបានជួលរួចរាល់ហើយ មិនអាចធ្វើការកក់ប្រាក់បានទេ។ សូមពិនិត្យមើលបន្ទប់ទំនេរផ្សេងទៀត។',
-                                              );
-                                            }
+                                          ? null
                                           : () {
                                               BakongPaymentDialog.show(
                                                 context: context,
@@ -995,8 +1041,12 @@ class _DetailscreenState extends State<Detailscreen> {
                                             : const Color(
                                                 0xFFE1251B,
                                               ), // Official Bakong Red
+                                        disabledBackgroundColor: isBooked
+                                            ? const Color(0xFFF59E0B)
+                                            : const Color(0xFF64748B),
+                                        disabledForegroundColor: Colors.white,
                                         foregroundColor: Colors.white,
-                                        elevation: 1,
+                                        elevation: !isAvailable ? 0 : 1,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                             12,
@@ -1018,6 +1068,7 @@ class _DetailscreenState extends State<Detailscreen> {
                                                       .do_not_disturb_on_rounded
                                                 : Icons.qr_code_rounded,
                                             size: 16,
+                                            color: Colors.white,
                                           ),
                                           const SizedBox(width: 4),
                                           Flexible(
@@ -1030,6 +1081,7 @@ class _DetailscreenState extends State<Detailscreen> {
                                               style: GoogleFonts.battambang(
                                                 fontSize: 12.5,
                                                 fontWeight: FontWeight.bold,
+                                                color: Colors.white,
                                               ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
@@ -1061,6 +1113,33 @@ class _DetailscreenState extends State<Detailscreen> {
     BuildContext context,
     String roomName,
   ) async {
+    // Check if user already has an active (pending or confirmed) request for this room
+    try {
+      final myRequests = await _viewingRequestService.getMyViewingRequests();
+      ViewingRequestModel? activeReq;
+      for (final r in myRequests) {
+        if (r.room?.id == widget.id &&
+            (r.status.toLowerCase() == 'pending' ||
+                r.status.toLowerCase() == 'confirmed')) {
+          activeReq = r;
+          break;
+        }
+      }
+
+      if (activeReq != null) {
+        if (!context.mounted) return;
+        final isConfirmed = activeReq.status.toLowerCase() == 'confirmed';
+        final statusKhmer = isConfirmed
+            ? 'ត្រូវបានម្ចាស់បន្ទប់យល់ព្រមរួចរាល់'
+            : 'កំពុងរង់ចាំការឆ្លើយតបពីម្ចាស់បន្ទប់';
+        AppAlert.warning(
+          'មិនអាចស្នើសុំបានទេ',
+          'អ្នកបានផ្ញើសំណើណាត់ជួបមើលបន្ទប់នេះរួចហើយ ($statusKhmer)។ អ្នកអាចស្នើសុំម្តងទៀតបាន លុះត្រាតែម្ចាស់បន្ទប់បានធ្វើការបដិសេធសំណើមុនសិន។',
+        );
+        return;
+      }
+    } catch (_) {}
+
     final savedUser = await DatabaseService.instance.getSavedUser();
     final nameController = TextEditingController(text: savedUser?.name ?? '');
     final phoneController = TextEditingController(text: savedUser?.phone ?? '');
@@ -1445,6 +1524,7 @@ class _DetailscreenState extends State<Detailscreen> {
                                     'ជោគជ័យ',
                                     'សំណើរបស់អ្នកត្រូវបានផ្ញើទៅម្ចាស់ផ្ទះរួចរាល់',
                                   );
+                                  _checkUserViewingRequest();
                                 } catch (e) {
                                   setSheetState(() => isSubmitting = false);
                                   AppAlert.error(

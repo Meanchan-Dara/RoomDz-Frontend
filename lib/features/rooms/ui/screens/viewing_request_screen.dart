@@ -1,6 +1,7 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/core/constants/app_colors.dart';
+import 'package:roomdz_frontend/core/widgets/modern_button_loader.dart';
 import 'package:roomdz_frontend/features/rooms/data/models/view_request_model.dart';
 import 'package:roomdz_frontend/features/rooms/data/services/viewing_request_service.dart';
 import 'package:roomdz_frontend/core/widgets/app_alert.dart';
@@ -20,6 +21,7 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   int? _actionId;
+  String? _actionType; // 'confirm' or 'reject'
   String _selectedFilter = 'all'; // all, pending, confirmed, rejected
 
   @override
@@ -51,7 +53,10 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
   }
 
   Future<void> _handleConfirm(int id) async {
-    setState(() => _actionId = id);
+    setState(() {
+      _actionId = id;
+      _actionType = 'confirm';
+    });
     try {
       await _service.confirmViewingRequest(id);
       AppAlert.success('ជោគជ័យ', 'បានយល់ព្រមសំណើររួចរាល់');
@@ -59,12 +64,20 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
     } catch (e) {
       AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     } finally {
-      if (mounted) setState(() => _actionId = null);
+      if (mounted) {
+        setState(() {
+          _actionId = null;
+          _actionType = null;
+        });
+      }
     }
   }
 
   Future<void> _handleReject(int id) async {
-    setState(() => _actionId = id);
+    setState(() {
+      _actionId = id;
+      _actionType = 'reject';
+    });
     try {
       await _service.rejectViewingRequest(id);
       AppAlert.success('ជោគជ័យ', 'បានបដិសេធសំណើររួចរាល់');
@@ -72,7 +85,12 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
     } catch (e) {
       AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     } finally {
-      if (mounted) setState(() => _actionId = null);
+      if (mounted) {
+        setState(() {
+          _actionId = null;
+          _actionType = null;
+        });
+      }
     }
   }
 
@@ -245,7 +263,9 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final req = requests[index];
-        final isProcessing = _actionId == req.id;
+        final isConfirming = _actionId == req.id && _actionType == 'confirm';
+        final isRejecting = _actionId == req.id && _actionType == 'reject';
+        final isAnyProcessing = _actionId == req.id;
         final statusLower = req.status.toLowerCase();
 
         Color statusBg;
@@ -406,56 +426,64 @@ class _ViewingRequestScreenState extends State<ViewingRequestScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: isProcessing
-                            ? null
-                            : () => _handleReject(req.id),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      child: SizedBox(
+                        height: 42,
+                        child: OutlinedButton(
+                          onPressed: isAnyProcessing
+                              ? null
+                              : () => _handleReject(req.id),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                        ),
-                        child: Text(
-                          'បដិសេធ',
-                          style: GoogleFonts.battambang(
-                            fontWeight: FontWeight.bold,
+                          child: ModernButtonContent(
+                            isLoading: isRejecting,
+                            text: 'បដិសេធ',
+                            loadingText: 'កំពុងបដិសេធ',
+                            textColor: Colors.red,
+                            icon: Icons.close_rounded,
+                            iconSize: 18,
+                            dotSize: 4.0,
+                            dotSpacing: 3.0,
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: isProcessing
-                            ? null
-                            : () => _handleConfirm(req.id),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF16A34A),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      child: SizedBox(
+                        height: 42,
+                        child: ElevatedButton(
+                          onPressed: isAnyProcessing
+                              ? null
+                              : () => _handleConfirm(req.id),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF16A34A),
+                            foregroundColor: Colors.white,
+                            disabledBackgroundColor: const Color(
+                              0xFF16A34A,
+                            ).withValues(alpha: 0.5),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: ModernButtonContent(
+                            isLoading: isConfirming,
+                            text: 'យល់ព្រម',
+                            loadingText: 'កំពុងយល់ព្រម',
+                            textColor: Colors.white,
+                            icon: Icons.check_rounded,
+                            iconSize: 18,
+                            dotSize: 4.0,
+                            dotSpacing: 3.0,
+                          ),
                         ),
-                        child: isProcessing
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(
-                                'យល់ព្រម',
-                                style: GoogleFonts.battambang(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
                       ),
                     ),
                   ],

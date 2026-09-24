@@ -1,28 +1,9 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/core/constants/app_colors.dart';
 import 'package:roomdz_frontend/core/widgets/app_alert.dart';
-
-enum NotificationType { request, payment, alert, system }
-
-class NotificationItem {
-  final String id;
-  final String title;
-  final String message;
-  final String time;
-  final NotificationType type;
-  bool isRead;
-
-  NotificationItem({
-    required this.id,
-    required this.title,
-    required this.message,
-    required this.time,
-    required this.type,
-    this.isRead = false,
-  });
-}
+import 'package:roomdz_frontend/features/auth/ui/controllers/notification_controller.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -32,88 +13,34 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  final NotificationController _notifCtrl = Get.put(NotificationController());
   String _selectedFilter = 'all'; // 'all', 'unread', 'request', 'payment'
 
-  final List<NotificationItem> _notifications = [
-    NotificationItem(
-      id: '1',
-      title: 'សំណើណាត់ជួបត្រូវបានបញ្ជាក់!',
-      message:
-          'ម្ចាស់បន្ទប់បានយល់ព្រមលើសំណើណាត់ជួបមើលបន្ទប់ "Studio Deluxe #302" នៅថ្ងៃស្អែកវេលាម៉ោង 2:00 រសៀល។',
-      time: '10 នាទីមុន',
-      type: NotificationType.request,
-      isRead: false,
-    ),
-    NotificationItem(
-      id: '2',
-      title: 'បន្ទប់ថ្មីត្រូវនឹងចំណូលចិត្តរបស់អ្នក',
-      message:
-          'មានបន្ទប់ជួលថ្មីមួយតម្លៃ \$120/ខែ នៅក្នុងខណ្ឌទួលគោក ទើបតែត្រូវបានបង្ហោះ។',
-      time: '2 ម៉ោងមុន',
-      type: NotificationType.alert,
-      isRead: false,
-    ),
-    NotificationItem(
-      id: '3',
-      title: 'ការទូទាត់ប្រាក់កក់ទទួលបានជោគជ័យ',
-      message:
-          'ការទូទាត់ប្រាក់កក់ចំនួន \$150.00 តាមរយៈ Bakong KHQR ត្រូវបានផ្ទៀងផ្ទាត់ដោយជោគជ័យ។',
-      time: 'ម្សិលមិញ',
-      type: NotificationType.payment,
-      isRead: true,
-    ),
-    NotificationItem(
-      id: '4',
-      title: 'រំលឹកការណាត់ជួបនៅថ្ងៃស្អែក',
-      message:
-          'សូមកុំភ្លេចការណាត់ជួបមើលបន្ទប់ "Modern Studio Room" របស់អ្នកនៅថ្ងៃស្អែកវេលាម៉ោង 10:30 ព្រឹក។',
-      time: '2 ថ្ងៃមុន',
-      type: NotificationType.request,
-      isRead: true,
-    ),
-    NotificationItem(
-      id: '5',
-      title: 'ការធ្វើបច្ចុប្បន្នភាពប្រព័ន្ធ RoomDz v1.0.2',
-      message:
-          'យើងបានបន្ថែមមុខងារថ្មីៗ និងបង្កើនល្បឿននៃការស្វែងរកបន្ទប់ជួលឱ្យកាន់តែប្រសើរឡើង។',
-      time: '5 ថ្ងៃមុន',
-      type: NotificationType.system,
-      isRead: true,
-    ),
-  ];
-
   List<NotificationItem> get _filteredNotifications {
+    final list = _notifCtrl.notifications;
     switch (_selectedFilter) {
       case 'unread':
-        return _notifications.where((n) => !n.isRead).toList();
+        return list.where((n) => !n.isRead).toList();
       case 'request':
-        return _notifications
-            .where((n) => n.type == NotificationType.request)
-            .toList();
+        return list.where((n) => n.type == NotificationType.request).toList();
       case 'payment':
-        return _notifications
-            .where((n) => n.type == NotificationType.payment)
-            .toList();
+        return list.where((n) => n.type == NotificationType.payment).toList();
       default:
-        return _notifications;
+        return list;
     }
   }
 
-  int get _unreadCount => _notifications.where((n) => !n.isRead).length;
-
   void _markAllAsRead() {
-    setState(() {
-      for (var n in _notifications) {
-        n.isRead = true;
-      }
-    });
+    _notifCtrl.markAllAsRead();
     AppAlert.success('ជោគជ័យ', 'បានសម្គាល់ការជូនដំណឹងទាំងអស់ថាបានអាន');
   }
 
+  void _markItemAsRead(NotificationItem item) {
+    _notifCtrl.markItemAsRead(item);
+  }
+
   void _deleteNotification(String id) {
-    setState(() {
-      _notifications.removeWhere((n) => n.id == id);
-    });
+    _notifCtrl.deleteNotification(id);
   }
 
   IconData _getTypeIcon(NotificationType type) {
@@ -167,23 +94,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
         actions: [
-          if (_unreadCount > 0)
-            TextButton.icon(
-              onPressed: _markAllAsRead,
-              icon: const Icon(
-                Icons.done_all_rounded,
-                size: 18,
-                color: AppColors.primary,
-              ),
-              label: Text(
-                'អានទាំងអស់',
-                style: GoogleFonts.battambang(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+          // Text button without checkmark icon
+          Obx(() {
+            if (_notifCtrl.unreadCount.value > 0) {
+              return TextButton(
+                onPressed: _markAllAsRead,
+                child: Text(
+                  'អានទាំងអស់',
+                  style: GoogleFonts.battambang(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
                 ),
-              ),
-            ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
       body: Column(
@@ -194,172 +121,212 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildFilterChip('all', 'ទាំងអស់ (${_notifications.length})'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('unread', 'មិនទាន់អាន ($_unreadCount)'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('request', 'សំណើណាត់ជួប'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('payment', 'ការទូទាត់'),
-                ],
+              child: Obx(
+                () => Row(
+                  children: [
+                    _buildFilterChip(
+                      'all',
+                      'ទាំងអស់ (${_notifCtrl.notifications.length})',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildFilterChip(
+                      'unread',
+                      'មិនទាន់អាន (${_notifCtrl.unreadCount.value})',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('request', 'សំណើណាត់ជួប'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('payment', 'ការទូទាត់'),
+                  ],
+                ),
               ),
             ),
           ),
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
 
-          // Notifications List
+          // Notifications List or Loading / Empty state
           Expanded(
-            child: _filteredNotifications.isEmpty
-                ? _buildEmptyState()
-                : RefreshIndicator(
-                    onRefresh: () async {
-                      await Future.delayed(const Duration(milliseconds: 600));
-                      setState(() {});
-                    },
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
+            child: Obx(() {
+              if (_notifCtrl.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              }
+
+              if (_notifCtrl.errorMessage.value.isNotEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _notifCtrl.errorMessage.value,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.battambang(
+                          color: Colors.grey.shade700,
+                        ),
                       ),
-                      itemCount: _filteredNotifications.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10),
-                      itemBuilder: (context, index) {
-                        final item = _filteredNotifications[index];
-                        final color = _getTypeColor(item.type);
-                        final icon = _getTypeIcon(item.type);
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: _notifCtrl.fetchNotifications,
+                        icon: const Icon(Icons.refresh),
+                        label: Text(
+                          'ព្យាយាមម្តងទៀត',
+                          style: GoogleFonts.battambang(),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
 
-                        return Dismissible(
-                          key: Key(item.id),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 20),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.delete_outline_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          onDismissed: (_) => _deleteNotification(item.id),
-                          child: InkWell(
-                            onTap: () {
-                              setState(() {
-                                item.isRead = true;
-                              });
-                              _showDetailDialog(item);
-                            },
+              final filtered = _filteredNotifications;
+              if (filtered.isEmpty) {
+                return _buildEmptyState();
+              }
+
+              return RefreshIndicator(
+                onRefresh: _notifCtrl.fetchNotifications,
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  itemCount: filtered.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final item = filtered[index];
+                    final color = _getTypeColor(item.type);
+                    final icon = _getTypeIcon(item.type);
+
+                    return Dismissible(
+                      key: Key(item.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      onDismissed: (_) => _deleteNotification(item.id),
+                      child: InkWell(
+                        onTap: () {
+                          _markItemAsRead(item);
+                          _showDetailDialog(item);
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: item.isRead
+                                ? Colors.white
+                                : const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(16),
-                            child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: item.isRead
-                                    ? Colors.white
-                                    : const Color(0xFFEFF6FF),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: item.isRead
-                                      ? const Color(0xFFE2E8F0)
-                                      : const Color(0xFFBFDBFE),
-                                  width: 1,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.03),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
+                            border: Border.all(
+                              color: item.isRead
+                                  ? const Color(0xFFE2E8F0)
+                                  : const Color(0xFFBFDBFE),
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Icon
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: color.withValues(alpha: 0.12),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(icon, color: color, size: 20),
-                                  ),
-                                  const SizedBox(width: 12),
+                            ],
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Icon
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: 0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(icon, color: color, size: 20),
+                              ),
+                              const SizedBox(width: 12),
 
-                                  // Content
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                              // Content
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                item.title,
-                                                style: GoogleFonts.battambang(
-                                                  fontWeight: item.isRead
-                                                      ? FontWeight.w600
-                                                      : FontWeight.bold,
-                                                  fontSize: 14,
-                                                  color: const Color(
-                                                    0xFF0F172A,
-                                                  ),
-                                                ),
-                                              ),
+                                        Expanded(
+                                          child: Text(
+                                            item.title,
+                                            style: GoogleFonts.battambang(
+                                              fontWeight: item.isRead
+                                                  ? FontWeight.w600
+                                                  : FontWeight.bold,
+                                              fontSize: 14,
+                                              color: const Color(0xFF0F172A),
                                             ),
-                                            if (!item.isRead)
-                                              Container(
-                                                width: 8,
-                                                height: 8,
-                                                margin: const EdgeInsets.only(
-                                                  left: 6,
-                                                ),
-                                                decoration: const BoxDecoration(
-                                                  color: AppColors.primary,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          item.message,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.battambang(
-                                            fontSize: 13,
-                                            color: const Color(0xFF64748B),
-                                            height: 1.4,
                                           ),
                                         ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          item.time,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Color(0xFF94A3B8),
-                                            fontWeight: FontWeight.w500,
+                                        if (!item.isRead)
+                                          Container(
+                                            width: 8,
+                                            height: 8,
+                                            margin: const EdgeInsets.only(
+                                              left: 6,
+                                            ),
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.primary,
+                                              shape: BoxShape.circle,
+                                            ),
                                           ),
-                                        ),
                                       ],
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item.message,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.battambang(
+                                        fontSize: 13,
+                                        color: const Color(0xFF64748B),
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                    if (item.time.isNotEmpty) ...[
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        item.time,
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Color(0xFF94A3B8),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }),
           ),
         ],
       ),
@@ -476,14 +443,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                item.time,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+            if (item.time.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  item.time,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
               ),
-            ),
+            ],
           ],
         ),
         actions: [
