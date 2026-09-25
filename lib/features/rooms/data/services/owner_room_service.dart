@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:roomdz_frontend/features/rooms/data/models/room_model.dart';
 import 'package:roomdz_frontend/core/network/api_client.dart';
@@ -50,6 +50,11 @@ class OwnerRoomService {
   Future<void> releaseUnit(int id) async {
     await _addToken();
     await _dio.post('/owner/rooms/$id/release-unit');
+  }
+
+  Future<void> updateRoomStatus(int id, String status) async {
+    await _addToken();
+    await _dio.put('/owner/rooms/$id/status', data: {'status': status});
   }
 
   Future<void> deleteRoom(int id) async {

@@ -1,4 +1,4 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -176,24 +176,242 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
     }
   }
 
-  Future<void> _handleRentOut(int id) async {
+  Future<void> _handleChangeStatus(int id, String newStatus) async {
     try {
-      await _roomService.rentOutRoom(id);
-      AppAlert.success('ជោគជ័យ', 'បានកាត់បន្ថយបន្ទប់ទំនេររួចរាល់');
+      await _roomService.updateRoomStatus(id, newStatus);
+      final statusLabel = newStatus == 'OCCUPIED'
+          ? 'ត្រូវបានជួល'
+          : (newStatus == 'BOOKED' ? 'ត្រូវបានកក់' : 'ទំនេរ');
+      AppAlert.success('ជោគជ័យ', 'បានប្តូរស្ថានភាពទៅជា "$statusLabel"');
       _fetchRooms();
     } catch (e) {
       AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
-  Future<void> _handleReleaseUnit(int id) async {
-    try {
-      await _roomService.releaseUnit(id);
-      AppAlert.success('ជោគជ័យ', 'បានបន្ថែមចំនួនបន្ទប់ទំនេរវិញរួចរាល់');
-      _fetchRooms();
-    } catch (e) {
-      AppAlert.error('បរាជ័យ', e.toString().replaceFirst('Exception: ', ''));
+  Future<void> _confirmMarkAsRented(Datum room) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.vpn_key_rounded, color: Colors.orange, size: 22),
+            const SizedBox(width: 8),
+            Text(
+              'សម្គាល់ថាបានជួល?',
+              style: GoogleFonts.battambang(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'តើអ្នក និងអ្នកជួលបានយល់ព្រមជួលបន្ទប់ "${room.name}" រួចរាល់ហើយមែនទេ?\n\nប្រព័ន្ធនឹងផ្លាស់ប្តូរស្ថានភាពបន្ទប់នេះទៅជា "ត្រូវបានជួល" (Occupied)។',
+          style: GoogleFonts.battambang(fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'បោះបង់',
+              style: GoogleFonts.battambang(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'យល់ព្រម ជួលរួច',
+              style: GoogleFonts.battambang(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _handleChangeStatus(room.id, 'OCCUPIED');
     }
+  }
+
+  void _showChangeStatusSheet(Datum room) {
+    final statusType = getRoomStatusType(
+      room.status,
+      hasLatestBooking: room.latestBooking != null,
+    );
+    final isOccupied = statusType == RoomStatusType.rented;
+    final isBooked = statusType == RoomStatusType.booked;
+    final isAvailable = statusType == RoomStatusType.available;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.published_with_changes_rounded,
+                    color: AppColors.primary,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'ផ្លាស់ប្តូរស្ថានភាពបន្ទប់',
+                    style: GoogleFonts.battambang(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                room.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.battambang(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildStatusOption(
+                title: 'ទំនេរ (Available)',
+                subtitle: 'បន្ទប់ទំនេរ អាចដាក់ជួល ឬកក់បាន',
+                icon: Icons.check_circle_outline_rounded,
+                color: const Color(0xFF10B981),
+                isSelected: isAvailable,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _handleChangeStatus(room.id, 'AVAILABLE NOW');
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildStatusOption(
+                title: 'ត្រូវបានកក់ (Booked)',
+                subtitle: 'មានភ្ញៀវកក់ប្រាក់កក់ទុកជាមុន',
+                icon: Icons.lock_clock_rounded,
+                color: const Color(0xFFF59E0B),
+                isSelected: isBooked,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _handleChangeStatus(room.id, 'BOOKED');
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildStatusOption(
+                title: 'ត្រូវបានជួល (Occupied)',
+                subtitle: 'បានជួលរួចរាល់ កំពុងមានអ្នកស្នាក់នៅ',
+                icon: Icons.vpn_key_rounded,
+                color: const Color(0xFF64748B),
+                isSelected: isOccupied,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _handleChangeStatus(room.id, 'OCCUPIED');
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusOption({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? color.withValues(alpha: 0.08)
+              : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? color : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 20, color: color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.battambang(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? color : const Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.battambang(
+                      fontSize: 11,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(Icons.check_circle_rounded, color: color, size: 20),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -235,11 +453,6 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            onPressed: _fetchRooms,
-            tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF64748B)),
-          ),
           Padding(
             padding: const EdgeInsets.only(right: 14),
             child: FilledButton.icon(
@@ -622,14 +835,17 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
                               ),
                       ),
                     ),
-                    // Floating Status Badge on top of image
+                    // Floating Status Badge on top of image (tap to change status)
                     Positioned(
                       top: 5,
                       left: 5,
-                      child: RoomStatusBadge(
-                        status: room.status,
-                        hasLatestBooking: room.latestBooking != null,
-                        isCompact: true,
+                      child: GestureDetector(
+                        onTap: () => _showChangeStatusSheet(room),
+                        child: RoomStatusBadge(
+                          status: room.status,
+                          hasLatestBooking: room.latestBooking != null,
+                          isCompact: true,
+                        ),
                       ),
                     ),
                   ],
@@ -709,7 +925,6 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
                                 color: AppColors.primary.withValues(
                                   alpha: 0.08,
                                 ),
-                                borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 room.category.name,
@@ -758,7 +973,7 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
 
                         const SizedBox(height: 4),
 
-                        // Row 4: Price & Booking Status
+                        // Row 4: Price & Booking Status / Quick Action
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
@@ -784,7 +999,7 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
                               ),
                             ),
                             const Spacer(),
-                            if (room.latestBooking != null)
+                            if (room.latestBooking != null) ...[
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 5,
@@ -849,6 +1064,47 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
                                   ],
                                 ),
                               ),
+                              if (getRoomStatusType(
+                                    room.status,
+                                    hasLatestBooking: true,
+                                  ) !=
+                                  RoomStatusType.rented) ...[
+                                const SizedBox(width: 4),
+                                InkWell(
+                                  onTap: () => _confirmMarkAsRented(room),
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF0F172A),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.vpn_key_rounded,
+                                          size: 9,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 2),
+                                        Text(
+                                          'ជួលរួច',
+                                          style: GoogleFonts.battambang(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ],
                         ),
                       ],
@@ -864,6 +1120,12 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
   }
 
   Widget _buildPopupMenu(Datum room) {
+    final statusType = getRoomStatusType(
+      room.status,
+      hasLatestBooking: room.latestBooking != null,
+    );
+    final isOccupied = statusType == RoomStatusType.rented;
+
     return PopupMenuButton<String>(
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
@@ -876,15 +1138,73 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
       onSelected: (val) {
         if (val == 'details') {
           Get.to(() => Detailscreen(id: room.id));
-        } else if (val == 'rent_out') {
-          _handleRentOut(room.id);
-        } else if (val == 'release') {
-          _handleReleaseUnit(room.id);
+        } else if (val == 'change_status') {
+          _showChangeStatusSheet(room);
+        } else if (val == 'mark_rented') {
+          _confirmMarkAsRented(room);
+        } else if (val == 'mark_available') {
+          _handleChangeStatus(room.id, 'AVAILABLE NOW');
         } else if (val == 'delete') {
           _confirmDeleteRoom(room.id, room.name);
         }
       },
       itemBuilder: (ctx) => [
+        PopupMenuItem(
+          value: 'change_status',
+          child: Row(
+            children: [
+              const Icon(
+                Icons.published_with_changes_rounded,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'ប្តូរស្ថានភាពបន្ទប់',
+                style: GoogleFonts.battambang(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (!isOccupied)
+          PopupMenuItem(
+            value: 'mark_rented',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.vpn_key_rounded,
+                  size: 18,
+                  color: Color(0xFF64748B),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'សម្គាល់ថាបានជួលរួច',
+                  style: GoogleFonts.battambang(fontSize: 13),
+                ),
+              ],
+            ),
+          )
+        else
+          PopupMenuItem(
+            value: 'mark_available',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_outline_rounded,
+                  size: 18,
+                  color: Color(0xFF10B981),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'សម្គាល់ថាទំនេរវិញ',
+                  style: GoogleFonts.battambang(fontSize: 13),
+                ),
+              ],
+            ),
+          ),
         PopupMenuItem(
           value: 'details',
           child: Row(
@@ -892,45 +1212,11 @@ class _MyRoomsScreenState extends State<MyRoomsScreen> {
               const Icon(
                 Icons.visibility_outlined,
                 size: 18,
-                color: AppColors.primary,
+                color: Color(0xFF64748B),
               ),
               const SizedBox(width: 8),
               Text(
                 'មើលព័ត៌មានលម្អិត',
-                style: GoogleFonts.battambang(fontSize: 13),
-              ),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'rent_out',
-          child: Row(
-            children: [
-              const Icon(
-                Icons.person_remove_outlined,
-                size: 18,
-                color: Colors.orange,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'ជួលបន្ទប់ចេញ (-1)',
-                style: GoogleFonts.battambang(fontSize: 13),
-              ),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'release',
-          child: Row(
-            children: [
-              const Icon(
-                Icons.person_add_outlined,
-                size: 18,
-                color: Colors.green,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'ដោះលែងបន្ទប់ (+1)',
                 style: GoogleFonts.battambang(fontSize: 13),
               ),
             ],

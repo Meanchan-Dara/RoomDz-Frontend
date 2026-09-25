@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:roomdz_frontend/core/constants/app_colors.dart';
 import 'package:roomdz_frontend/features/rooms/data/models/view_request_model.dart';
@@ -94,13 +94,6 @@ class _OwnerNotificationScreenState extends State<OwnerNotificationScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: AppColors.primary),
-            onPressed: _fetchNotifications,
-            tooltip: 'ផ្ទុកឡើងវិញ',
-          ),
-        ],
       ),
       body: Column(
         children: [
