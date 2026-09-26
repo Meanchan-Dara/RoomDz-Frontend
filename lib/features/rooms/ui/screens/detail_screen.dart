@@ -36,6 +36,127 @@ class _DetailscreenState extends State<Detailscreen> {
   final FavoriteController favoriteController = Get.find<FavoriteController>();
 
   ViewingRequestModel? _userActiveRequest;
+  final PageController _imagePageController = PageController();
+  int _currentImageIndex = 0;
+
+  @override
+  void dispose() {
+    _imagePageController.dispose();
+    super.dispose();
+  }
+
+  void _openFullScreenGallery(
+    BuildContext context,
+    List<String> images,
+    int initialIndex,
+  ) {
+    if (images.isEmpty) return;
+    final pageController = PageController(initialPage: initialIndex);
+    int activeIndex = initialIndex;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.95),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (dialogCtx, setModalState) {
+            return Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: AppBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                  onPressed: () => Navigator.of(ctx).pop(),
+                ),
+                title: Text(
+                  '${activeIndex + 1} / ${images.length}',
+                  style: GoogleFonts.battambang(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                centerTitle: true,
+              ),
+              body: Stack(
+                children: [
+                  PageView.builder(
+                    controller: pageController,
+                    itemCount: images.length,
+                    onPageChanged: (i) {
+                      setModalState(() => activeIndex = i);
+                      if (mounted) {
+                        setState(() => _currentImageIndex = i);
+                        if (_imagePageController.hasClients) {
+                          _imagePageController.jumpToPage(i);
+                        }
+                      }
+                    },
+                    itemBuilder: (context, index) {
+                      return InteractiveViewer(
+                        minScale: 0.8,
+                        maxScale: 4.0,
+                        child: Center(
+                          child: Image.network(
+                            images[index],
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, _, _) => const Icon(
+                              Icons.broken_image_rounded,
+                              color: Colors.white70,
+                              size: 70,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  if (images.length > 1 && activeIndex > 0)
+                    Positioned(
+                      left: 12,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back_ios_rounded,
+                            color: Colors.white70,
+                            size: 32,
+                          ),
+                          onPressed: () => pageController.previousPage(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (images.length > 1 && activeIndex < images.length - 1)
+                    Positioned(
+                      right: 12,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: Colors.white70,
+                            size: 32,
+                          ),
+                          onPressed: () => pageController.nextPage(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -92,6 +213,21 @@ class _DetailscreenState extends State<Detailscreen> {
         // API Data
         final room = snapshot.data!.data;
 
+        // Gather all available unique images (cover + gallery)
+        final List<String> allImages = () {
+          final list = <String>[];
+          if (room.image != null && room.image!.trim().isNotEmpty) {
+            list.add(room.image!.trim());
+          }
+          for (final img in room.images) {
+            final clean = img.trim();
+            if (clean.isNotEmpty && !list.contains(clean)) {
+              list.add(clean);
+            }
+          }
+          return list;
+        }();
+
         // Location coordinates
         final LatLng roomLocation =
             (room.location.latitude != 0.0 && room.location.longitude != 0.0)
@@ -102,7 +238,7 @@ class _DetailscreenState extends State<Detailscreen> {
           backgroundColor: Colors.white,
           body: CustomScrollView(
             slivers: [
-              // App Bar with Hero Image
+              // App Bar with Hero Image Slider
               SliverAppBar(
                 leadingWidth: 60,
                 actionsPadding: const EdgeInsets.symmetric(horizontal: 8),
@@ -158,41 +294,62 @@ class _DetailscreenState extends State<Detailscreen> {
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      (room.image != null && room.image!.isNotEmpty)
-                          ? Image.network(
-                              room.image!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Center(
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    size: 60,
-                                  ),
-                                );
-                              },
-                            )
-                          : Container(
-                              color: Colors.grey.shade200,
-                              child: const Center(
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  size: 60,
-                                  color: Colors.grey,
-                                ),
-                              ),
+                      if (allImages.isEmpty)
+                        Container(
+                          color: Colors.grey.shade200,
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 60,
+                              color: Colors.grey,
                             ),
+                          ),
+                        )
+                      else
+                        PageView.builder(
+                          controller: _imagePageController,
+                          itemCount: allImages.length,
+                          onPageChanged: (i) {
+                            setState(() => _currentImageIndex = i);
+                          },
+                          itemBuilder: (context, idx) {
+                            return GestureDetector(
+                              onTap: () => _openFullScreenGallery(
+                                context,
+                                allImages,
+                                idx,
+                              ),
+                              child: Image.network(
+                                allImages[idx],
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey.shade200,
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.broken_image_rounded,
+                                        size: 60,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
                       Positioned(
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: 70,
+                        height: 75,
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,
                               colors: [
-                                Colors.black.withValues(alpha: 0.5),
+                                Colors.black.withValues(alpha: 0.6),
                                 Colors.transparent,
                               ],
                             ),
@@ -207,6 +364,52 @@ class _DetailscreenState extends State<Detailscreen> {
                           hasLatestBooking: room.latestBooking != null,
                         ),
                       ),
+                      if (allImages.isNotEmpty)
+                        Positioned(
+                          bottom: 14,
+                          right: 16,
+                          child: GestureDetector(
+                            onTap: () => _openFullScreenGallery(
+                              context,
+                              allImages,
+                              _currentImageIndex,
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.65),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white24,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.photo_library_rounded,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    '${_currentImageIndex + 1} / ${allImages.length}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -298,6 +501,101 @@ class _DetailscreenState extends State<Detailscreen> {
                       ),
 
                       const SizedBox(height: 16),
+
+                      // Photo Gallery Thumbnail Row
+                      if (allImages.length > 1) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "រូបភាពបន្ទប់ (${allImages.length} សន្លឹក)",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 17,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => _openFullScreenGallery(
+                                context,
+                                allImages,
+                                _currentImageIndex,
+                              ),
+                              child: Text(
+                                "មើលទាំងអស់",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: 75,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: allImages.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(width: 10),
+                            itemBuilder: (context, idx) {
+                              final isSelected = _currentImageIndex == idx;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() => _currentImageIndex = idx);
+                                  if (_imagePageController.hasClients) {
+                                    _imagePageController.animateToPage(
+                                      idx,
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  width: 85,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : Colors.transparent,
+                                      width: 2.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.06,
+                                        ),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      allImages[idx],
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, _, _) => Container(
+                                        color: Colors.grey[200],
+                                        child: const Icon(
+                                          Icons.broken_image_rounded,
+                                          color: Colors.grey,
+                                          size: 24,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
 
                       // Room Information Details
                       _buildBgContainer(
